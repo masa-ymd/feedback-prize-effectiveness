@@ -99,7 +99,7 @@ def get_essay(essay_id):
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 df['essay_text'] = df['essay_id'].apply(get_essay)
-df.head()
+print(df.head())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
 
@@ -107,14 +107,14 @@ for fold, ( _, val_) in enumerate(gkf.split(X=df, groups=df.essay_id)):
     df.loc[val_ , "kfold"] = int(fold)
     
 df["kfold"] = df["kfold"].astype(int)
-df.head()
+print(df.head())
 
-df.groupby('kfold')['discourse_effectiveness'].value_counts()
+print(df.groupby('kfold')['discourse_effectiveness'].value_counts())
 
 encoder = LabelEncoder()
 df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectiveness'])
 
-with open("le.pkl", "wb") as fp:
+with open(f"{MODEL_PATH}/le.pkl", "wb") as fp:
     joblib.dump(encoder, fp)
 
 class FeedBackDataset(Dataset):
