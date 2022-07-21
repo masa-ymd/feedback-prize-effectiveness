@@ -61,8 +61,13 @@ def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
 HASH_NAME = id_generator(size=12)
 print(HASH_NAME)
 
-TRAIN_DIR = "../input/feedback-prize-effectiveness/train"
-TEST_DIR = "../input/feedback-prize-effectiveness/test
+BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
+TRAIN_DIR = f"{BASE_PATH}/train"
+TEST_DIR = f"{BASE_PATH}/test"
+MODEL_PATH = f"/root/kaggle/feedback-prize-effectiveness/models/{HASH_NAME}"
+
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_PATH)
 
 CONFIG = {"seed": 2022,
           "epochs": 3,
@@ -92,7 +97,7 @@ def get_essay(essay_id):
     essay_text = open(essay_path, 'r').read()
     return essay_text
 
-df = pd.read_csv("../input/feedback-prize-effectiveness/train.csv")
+df = pd.read_csv(f"{BASE_PATH}/train.csv")
 df['essay_text'] = df['essay_id'].apply(get_essay)
 df.head()
 
@@ -268,7 +273,7 @@ def run_training(model, optimizer, scheduler, device, num_epochs, fold):
             best_epoch_loss = val_epoch_loss
             run.summary["Best Loss"] = best_epoch_loss
             best_model_wts = copy.deepcopy(model.state_dict())
-            PATH = f"Loss-Fold-{fold}.bin"
+            PATH = f"{MODEL_PATH}/Loss-Fold-{fold}.bin"
             torch.save(model.state_dict(), PATH)
             # Save a model file from the current directory
             print(f"Model Saved{sr_}")
