@@ -44,6 +44,7 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 import wandb
 
+"""
 try:
     from kaggle_secrets import UserSecretsClient
     user_secrets = UserSecretsClient()
@@ -53,7 +54,8 @@ try:
 except:
     anony = "must"
     print('If you want to use your W&B account, go to Add-ons -> Secrets and provide your W&B access token. Use the Label name as wandb_api. \nGet your W&B access token from here: https://wandb.ai/authorize')
-
+"""
+wandb.login()
 
 def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
