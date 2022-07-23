@@ -198,6 +198,8 @@ class FeedBackModel(nn.Module):
     def __init__(self, model_name):
         super(FeedBackModel, self).__init__()
         self.model = AutoModel.from_pretrained(model_name)
+        (self.model).gradient_checkpointing_enable()
+        print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.drop = nn.Dropout(p=0.2)
         self.pooler = MeanPooling()
@@ -377,8 +379,6 @@ for fold in range(0, CONFIG['n_fold']):
     train_loader, valid_loader = prepare_loaders(fold=fold)
     
     model = FeedBackModel(CONFIG['model_name'])
-    model.gradient_checkpointing_enable()
-    print(f"Gradient Checkpointing: {model.is_gradient_checkpointing}")
     model.to(CONFIG['device'])
     
     # Define Optimizer and Scheduler
