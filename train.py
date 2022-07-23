@@ -148,7 +148,7 @@ class FeedBackDataset(Dataset):
         discourse = self.discourse[index]
         essay = self.essay[index]
         discourse_type = self.discourse_type[index]
-        text = discourse_type + " " + self.tokenizer.sep_token + " " + discourse + " " + self.tokenizer.sep_token + " " + essay
+        text = discourse_type + self.tokenizer.sep_token + discourse + " " + self.tokenizer.sep_token + " " + essay
         inputs = self.tokenizer.encode_plus(
                         text,
                         truncation=True,
