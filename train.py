@@ -16,6 +16,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import Dataset, DataLoader
+import torch.utils.checkpoint
 
 # Utils
 from tqdm import tqdm
@@ -73,7 +74,8 @@ if not os.path.exists(MODEL_PATH):
 
 CONFIG = {"seed": 2022,
           "epochs": 3,
-          "model_name": "microsoft/deberta-v3-base",
+          #"model_name": "microsoft/deberta-v3-base",
+          "model_name": "microsoft/deberta-v3-large",
           "train_batch_size": 8,
           "valid_batch_size": 16,
           "max_length": 512,
@@ -82,7 +84,7 @@ CONFIG = {"seed": 2022,
           "min_lr": 1e-6,
           "T_max": 500,
           "weight_decay": 1e-6,
-          "n_fold": 3,
+          "n_fold": 4,
           "n_accumulate": 1,
           "num_classes": 3,
           "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
@@ -99,8 +101,36 @@ def get_essay(essay_id):
     essay_text = open(essay_path, 'r').read()
     return essay_text
 
+from text_unidecode import unidecode
+from typing import Dict, List, Tuple
+import codecs
+
+def replace_encoding_with_utf8(error: UnicodeError) -> Tuple[bytes, int]:
+    return error.object[error.start : error.end].encode("utf-8"), error.end
+
+
+def replace_decoding_with_cp1252(error: UnicodeError) -> Tuple[str, int]:
+    return error.object[error.start : error.end].decode("cp1252"), error.end
+
+# Register the encoding and decoding error handlers for `utf-8` and `cp1252`.
+codecs.register_error("replace_encoding_with_utf8", replace_encoding_with_utf8)
+codecs.register_error("replace_decoding_with_cp1252", replace_decoding_with_cp1252)
+
+def resolve_encodings_and_normalize(text: str) -> str:
+    """Resolve the encoding problems and normalize the abnormal characters."""
+    text = (
+        text.encode("raw_unicode_escape")
+        .decode("utf-8", errors="replace_decoding_with_cp1252")
+        .encode("cp1252", errors="replace_encoding_with_utf8")
+        .decode("utf-8", errors="replace_decoding_with_cp1252")
+    )
+    text = unidecode(text)
+    return text
+
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 df['essay_text'] = df['essay_id'].apply(get_essay)
+df['discourse_text'] = df['discourse_text'].apply(lambda x : resolve_encodings_and_normalize(x))
+df['essay_text'] = df['essay_text'].apply(lambda x : resolve_encodings_and_normalize(x))
 print(df.head())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
@@ -347,6 +377,8 @@ for fold in range(0, CONFIG['n_fold']):
     train_loader, valid_loader = prepare_loaders(fold=fold)
     
     model = FeedBackModel(CONFIG['model_name'])
+    model.gradient_checkpointing_enable()
+    print(f"Gradient Checkpointing: {model.is_gradient_checkpointing}")
     model.to(CONFIG['device'])
     
     # Define Optimizer and Scheduler
