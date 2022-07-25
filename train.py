@@ -133,9 +133,9 @@ def replace_target_to_sep(x):
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 df['essay_text'] = df['essay_id'].apply(get_essay)
+df['essay_text'] = df.apply(replace_target_to_sep, axis=1)
 df['discourse_text'] = df['discourse_text'].apply(lambda x : resolve_encodings_and_normalize(x))
 df['essay_text'] = df['essay_text'].apply(lambda x : resolve_encodings_and_normalize(x))
-dfS['essay_text'] = df.apply(replace_target_to_sep, axis=1)
 print(df.head())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
