@@ -73,13 +73,14 @@ if not os.path.exists(MODEL_PATH):
     os.makedirs(MODEL_PATH)
 
 CONFIG = {"seed": 2022,
-          "epochs": 3,
+          "epochs": 1,
           #"model_name": "microsoft/deberta-v3-base",
           "model_name": "microsoft/deberta-v3-large",
-          "train_batch_size": 8,
+          "train_batch_size": 10,
           "valid_batch_size": 16,
           "max_length": 512,
-          "learning_rate": 1e-5,
+          #"learning_rate": 1e-5, #3e-5, 2e-5
+          "learning_rate": 2e-5,
           "scheduler": 'CosineAnnealingLR',
           "min_lr": 1e-6,
           "T_max": 500,
@@ -127,10 +128,14 @@ def resolve_encodings_and_normalize(text: str) -> str:
     text = unidecode(text)
     return text
 
+def replace_target_to_sep(x):
+    return x.essay_text.replace(x.discourse_text, '[SEP]')
+
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 df['essay_text'] = df['essay_id'].apply(get_essay)
 df['discourse_text'] = df['discourse_text'].apply(lambda x : resolve_encodings_and_normalize(x))
 df['essay_text'] = df['essay_text'].apply(lambda x : resolve_encodings_and_normalize(x))
+dfS['essay_text'] = df.apply(replace_target_to_sep, axis=1)
 print(df.head())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
