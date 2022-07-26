@@ -98,8 +98,7 @@ CONFIG = {"seed": 2022,
           "_wandb_kernel": "deb",
           }
 
-CONFIG["tokenizer"] = AutoTokenizer.from_pretrained(CONFIG['model_name'])
-CONFIG["tokenizer"].add_special_tokens(additional_special_tokens)
+tokenizer = AutoTokenizer.from_pretrained(CONFIG['model_name'])
 CONFIG['group'] = f'{HASH_NAME}-Baseline'
 
 additional_special_tokens = {"additional_special_tokens":[
@@ -113,8 +112,10 @@ additional_special_tokens = {"additional_special_tokens":[
     "[CAT_EVIDENCE]",
     "[CAT_CONCLUDING_STATEMENT]",
     ]}
-CONFIG.tokenizer.add_special_tokens(additional_special_tokens)
+
+tokenizer.add_special_tokens(additional_special_tokens)
 print(tokenizer.all_special_tokens)
+CONFIG["tokenizer"] = tokenizer
 CONFIG.tokenizer.save_pretrained(f"{MODEL_PATH}/tokenizer/")
 
 def get_essay(essay_id):
