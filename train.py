@@ -79,10 +79,10 @@ if not os.path.exists(MODEL_PATH):
     os.makedirs(f"{MODEL_PATH}/tokenizer")
 
 CONFIG = {"seed": 2022,
-          "epochs": 1,
+          "epochs": 3,
           #"model_name": "microsoft/deberta-v3-base",
           "model_name": "microsoft/deberta-v3-large",
-          "train_batch_size": 16,
+          "train_batch_size": 32,
           "valid_batch_size": 16,
           "max_length": 512,
           #"learning_rate": 1e-5, #3e-5, 2e-5
