@@ -58,6 +58,9 @@ except:
 """
 wandb.login()
 
+pd.set_option("max_colwidth", None)
+pd.set_option("max_columns", 10)
+
 def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
 
