@@ -116,7 +116,7 @@ additional_special_tokens = {"additional_special_tokens":[
 tokenizer.add_special_tokens(additional_special_tokens)
 print(tokenizer.all_special_tokens)
 CONFIG["tokenizer"] = tokenizer
-CONFIG.tokenizer.save_pretrained(f"{MODEL_PATH}/tokenizer/")
+tokenizer.save_pretrained(f"{MODEL_PATH}/tokenizer/")
 
 def get_essay(essay_id):
     essay_path = os.path.join(TRAIN_DIR, f"{essay_id}.txt")
