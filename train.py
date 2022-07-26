@@ -61,6 +61,8 @@ wandb.login()
 pd.set_option("max_colwidth", None)
 pd.set_option("max_columns", 10)
 
+tqdm.pandas()
+
 def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
 
@@ -171,10 +173,16 @@ def replace_target_to_special_token(x):
     return x.essay_text.replace(x.discourse_text, '[AFTER_DISCOURSE]')
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
-df['essay_text'] = df['essay_id'].apply(get_essay)
-df['discourse_type_category'] = df.apply(add_special_tokens, axis=1)
-df['discourse_text'] = df['discourse_text'].apply(lambda x : resolve_encodings_and_normalize(x))
-df['essay_text'] = df['essay_text'].apply(lambda x : resolve_encodings_and_normalize(x))
+print("=== get essay ===")
+df['essay_text'] = df['essay_id'].progress_apply(get_essay)
+print("=== add_special_tokens ===")
+df['discourse_type_category'] = df.progress_apply(add_special_tokens, axis=1)
+print("=== replace_target_to_special_token ===")
+df['essay_text'] = df.progress_apply(replace_target_to_special_token, axis=1)
+print("=== aresolve_encodings_and_normalize(discourse_text) ===")
+df['discourse_text'] = df['discourse_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
+print("=== aresolve_encodings_and_normalize(essay_text) ===")
+df['essay_text'] = df['essay_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
 print(df.head())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
