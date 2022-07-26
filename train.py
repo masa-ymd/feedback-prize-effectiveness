@@ -99,7 +99,7 @@ CONFIG = {"seed": 2022,
           }
 
 CONFIG["tokenizer"] = AutoTokenizer.from_pretrained(CONFIG['model_name'])
-CONFIG.tokenizer.add_special_tokens(additional_special_tokens)
+CONFIG["tokenizer"].add_special_tokens(additional_special_tokens)
 CONFIG['group'] = f'{HASH_NAME}-Baseline'
 
 additional_special_tokens = {"additional_special_tokens":[
