@@ -71,6 +71,7 @@ MODEL_PATH = f"/root/kaggle/feedback-prize-effectiveness/models/{HASH_NAME}"
 
 if not os.path.exists(MODEL_PATH):
     os.makedirs(MODEL_PATH)
+    os.makedirs(f"{MODEL_PATH}/tokenizer")
 
 CONFIG = {"seed": 2022,
           "epochs": 1,
@@ -95,7 +96,23 @@ CONFIG = {"seed": 2022,
           }
 
 CONFIG["tokenizer"] = AutoTokenizer.from_pretrained(CONFIG['model_name'])
+CONFIG.tokenizer.add_special_tokens(additional_special_tokens)
 CONFIG['group'] = f'{HASH_NAME}-Baseline'
+
+additional_special_tokens = {"additional_special_tokens":[
+    "[BEFORE_DISCOURSE]", 
+    "[AFTER_DISCOURSE]",
+    "[CAT_LEAD]",
+    "[CAT_POSISION]",
+    "[CAT_CLAIM]",
+    "[CAT_COUNTERCLAIM]",
+    "[CAT_REBUTTAL]",
+    "[CAT_EVIDENCE]",
+    "[CAT_CONCLUDING_STATEMENT]",
+    ]}
+CONFIG.tokenizer.add_special_tokens(additional_special_tokens)
+print(tokenizer.all_special_tokens)
+CONFIG.tokenizer.save_pretrained(f"{MODEL_PATH}/tokenizer/")
 
 def get_essay(essay_id):
     essay_path = os.path.join(TRAIN_DIR, f"{essay_id}.txt")
@@ -128,12 +145,30 @@ def resolve_encodings_and_normalize(text: str) -> str:
     text = unidecode(text)
     return text
 
-def replace_target_to_sep(x):
-    return x.essay_text.replace(x.discourse_text, '[SEP]')
+def add_special_tokens(x):
+    if x.discourse_type == "Lead":
+        return '[CAT_LEAD]'
+    elif x.discourse_type == "Position":
+        return '[CAT_POSISION]'
+    elif x.discourse_type == "Claim":
+        return '[CAT_CLAIM]'
+    elif x.discourse_type == "Counterclaim":
+        return '[CAT_COUNTERCLAIM]'
+    elif x.discourse_type == "Rebuttal":
+        return '[CAT_REBUTTAL]'
+    elif x.discourse_type == "Evidence":
+        return '[CAT_EVIDENCE]'
+    elif x.discourse_type == "Concluding Statement":
+        return '[CAT_CONCLUDING_STATEMENT]'
+    else:
+        return '[UNK]'
+
+def replace_target_to_special_token(x):
+    return x.essay_text.replace(x.discourse_text, '[AFTER_DISCOURSE]')
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 df['essay_text'] = df['essay_id'].apply(get_essay)
-df['essay_text'] = df.apply(replace_target_to_sep, axis=1)
+df['discourse_type_category'] = df.apply(add_special_tokens, axis=1)
 df['discourse_text'] = df['discourse_text'].apply(lambda x : resolve_encodings_and_normalize(x))
 df['essay_text'] = df['essay_text'].apply(lambda x : resolve_encodings_and_normalize(x))
 print(df.head())
@@ -182,8 +217,8 @@ class FeedBackDataset(Dataset):
     def __getitem__(self, index):
         discourse = self.discourse[index]
         essay = self.essay[index]
-        discourse_type = self.discourse_type[index]
-        text = discourse_type + self.tokenizer.sep_token + discourse + " " + self.tokenizer.sep_token + " " + essay
+        discourse_type = self.discourse_type_category[index]
+        text = discourse_type + discourse + '[BEFORE_DISCOURSE]' + essay
         inputs = self.tokenizer.encode_plus(
                         text,
                         truncation=True,
@@ -200,9 +235,10 @@ class FeedBackDataset(Dataset):
 collate_fn = DataCollatorWithPadding(tokenizer=CONFIG['tokenizer'])
 
 class FeedBackModel(nn.Module):
-    def __init__(self, model_name):
+    def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
         self.model = AutoModel.from_pretrained(model_name)
+        self.model.resize_token_embeddings(len(tokenizer))
         (self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
@@ -383,7 +419,7 @@ for fold in range(0, CONFIG['n_fold']):
     # Create Dataloaders
     train_loader, valid_loader = prepare_loaders(fold=fold)
     
-    model = FeedBackModel(CONFIG['model_name'])
+    model = FeedBackModel(CONFIG['model_name'], CONFIG['tokenizer'])
     model.to(CONFIG['device'])
     
     # Define Optimizer and Scheduler
