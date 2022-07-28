@@ -302,8 +302,9 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
             optimizer.zero_grad()
 
             if scheduler is not None:
-                #scheduler.step()
-                scaler.update()
+                scheduler.step()
+
+        scaler.update()
                 
         running_loss += (loss.item() * batch_size)
         dataset_size += batch_size
