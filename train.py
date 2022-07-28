@@ -407,7 +407,7 @@ def prepare_loaders(fold):
     valid_dataset = FeedBackDataset(df_valid, tokenizer=CONFIG['tokenizer'], max_length=CONFIG['max_length'])
 
     train_loader = DataLoader(train_dataset, batch_size=CONFIG['train_batch_size'], collate_fn=collate_fn, 
-                              num_workers=4, shuffle=True, pin_memory=True, drop_last=True)
+                              num_workers=6, shuffle=True, pin_memory=True, drop_last=True)
     valid_loader = DataLoader(valid_dataset, batch_size=CONFIG['valid_batch_size'], collate_fn=collate_fn,
                               num_workers=2, shuffle=False, pin_memory=True)
     
