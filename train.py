@@ -17,6 +17,7 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import Dataset, DataLoader
 import torch.utils.checkpoint
+from torch.cuda.amp import autocast, GradScaler
 
 # Utils
 from tqdm import tqdm
@@ -98,6 +99,7 @@ CONFIG = {"seed": 2022,
           "hash_name": HASH_NAME,
           "competition": "FeedBack",
           "_wandb_kernel": "deb",
+          "T_0": 50,
           }
 
 tokenizer = AutoTokenizer.from_pretrained(CONFIG['model_name'])
@@ -271,6 +273,8 @@ def criterion(outputs, labels):
 
 def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
     model.train()
+
+    scaler = torch.cuda.amp.GradScaler()
     
     dataset_size = 0
     running_loss = 0.0
@@ -287,16 +291,18 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
         
         loss = criterion(outputs, targets)
         loss = loss / CONFIG['n_accumulate']
-        loss.backward()
+        scaler.scale(loss).backward()
     
         if (step + 1) % CONFIG['n_accumulate'] == 0:
-            optimizer.step()
+            #optimizer.step()
+            scaler.step(optimizer)
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
             if scheduler is not None:
-                scheduler.step()
+                #scheduler.step()
+                scaler.update()
                 
         running_loss += (loss.item() * batch_size)
         dataset_size += batch_size
@@ -400,7 +406,7 @@ def prepare_loaders(fold):
     valid_dataset = FeedBackDataset(df_valid, tokenizer=CONFIG['tokenizer'], max_length=CONFIG['max_length'])
 
     train_loader = DataLoader(train_dataset, batch_size=CONFIG['train_batch_size'], collate_fn=collate_fn, 
-                              num_workers=2, shuffle=True, pin_memory=True, drop_last=True)
+                              num_workers=4, shuffle=True, pin_memory=True, drop_last=True)
     valid_loader = DataLoader(valid_dataset, batch_size=CONFIG['valid_batch_size'], collate_fn=collate_fn,
                               num_workers=2, shuffle=False, pin_memory=True)
     
