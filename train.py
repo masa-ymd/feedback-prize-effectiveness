@@ -46,6 +46,8 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 import wandb
 
+#from timm.scheduler import CosineLRScheduler
+
 """
 try:
     from kaggle_secrets import UserSecretsClient
@@ -90,7 +92,8 @@ CONFIG = {"seed": 2022,
           "max_length": 512,
           #"learning_rate": 1e-5, #3e-5, 2e-5
           "learning_rate": 1e-5,
-          "scheduler": 'CosineAnnealingWarmRestarts',
+          #"scheduler": 'CosineAnnealingWarmRestarts',
+          "scheduler": 'CosineLRScheduler',
           "min_lr": 1e-6,
           "T_max": 500,
           "weight_decay": 0.01, #1e-6,
@@ -426,6 +429,9 @@ def fetch_scheduler(optimizer):
     elif CONFIG['scheduler'] == 'CosineAnnealingWarmRestarts':
         scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=CONFIG['T_0'], 
                                                              eta_min=CONFIG['min_lr'])
+    #elif CONFIG['scheduler'] == ':CosineLRScheduler':
+    #    scheduler = CosineLRScheduler(optimizer, t_initial=200, lr_min=1e-4, 
+    #                              warmup_t=20, warmup_lr_init=5e-5, warmup_prefix=True)
     elif CONFIG['scheduler'] == None:
         return None
         
