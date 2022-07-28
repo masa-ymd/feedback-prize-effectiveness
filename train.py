@@ -64,6 +64,8 @@ pd.set_option("max_columns", 10)
 
 tqdm.pandas()
 
+torch.backends.cudnn.benchmark = True
+
 def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
 
