@@ -287,10 +287,11 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
         
         batch_size = ids.size(0)
 
-        outputs = model(ids, mask)
+        with torch.cuda.amp.autocast():
+            outputs = model(ids, mask)
+            loss = criterion(outputs, targets)
+            loss = loss / CONFIG['n_accumulate']
         
-        loss = criterion(outputs, targets)
-        loss = loss / CONFIG['n_accumulate']
         scaler.scale(loss).backward()
     
         if (step + 1) % CONFIG['n_accumulate'] == 0:
