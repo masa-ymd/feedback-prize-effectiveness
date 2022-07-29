@@ -230,6 +230,20 @@ def get_freezed_parameters(module):
             
     return freezed_parameters
 
+# 8-bits optimizer
+def set_embedding_parameters_bits(embeddings_path, optim_bits=32):
+    """
+    https://github.com/huggingface/transformers/issues/14819#issuecomment-1003427930
+    """
+    embedding_types = ("word", "position", "token_type")
+    for embedding_type in embedding_types:
+        attr_name = f"{embedding_type}_embeddings"
+        
+        if hasattr(embeddings_path, attr_name): 
+            bnb.optim.GlobalOptimManager.get_instance().register_module_override(
+                getattr(embeddings_path, attr_name), 'weight', {'optim_bits': optim_bits}
+            )
+
 class MeanPooling(nn.Module):
     def __init__(self):
         super(MeanPooling, self).__init__()
@@ -300,7 +314,7 @@ class FeedBackModel(nn.Module):
         outputs = self.fc(out)
         return outputs
 
-    def get_freezed_parameters():
+    def get_freezed_parameters(self):
         return get_freezed_parameters(self.model)
 
 def criterion(outputs, labels):
