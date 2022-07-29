@@ -105,6 +105,7 @@ CONFIG = {"seed": 2022,
           "competition": "FeedBack",
           "_wandb_kernel": "deb",
           "T_0": 50,
+          "n_warmup_epochs": 1,
           }
 
 tokenizer = AutoTokenizer.from_pretrained(CONFIG['model_name'], use_fast=True)
@@ -422,16 +423,16 @@ def prepare_loaders(fold):
     
     return train_loader, valid_loader
 
-def fetch_scheduler(optimizer):
+def fetch_scheduler(optimizer, n_steps):
     if CONFIG['scheduler'] == 'CosineAnnealingLR':
         scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=CONFIG['T_max'], 
                                                    eta_min=CONFIG['min_lr'])
     elif CONFIG['scheduler'] == 'CosineAnnealingWarmRestarts':
         scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=CONFIG['T_0'], 
                                                              eta_min=CONFIG['min_lr'])
-    #elif CONFIG['scheduler'] == ':CosineLRScheduler':
-    #    scheduler = CosineLRScheduler(optimizer, t_initial=200, lr_min=1e-4, 
-    #                              warmup_t=20, warmup_lr_init=5e-5, warmup_prefix=True)
+    elif CONFIG['scheduler'] == ':CosineLRScheduler':
+        scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] + n_steps + 1, lr_min=1e-4, 
+                                  warmup_t=n_steps * CONFIG['n_warmup_epochs'] + 1, warmup_lr_init=5e-5, warmup_prefix=True)
     elif CONFIG['scheduler'] == None:
         return None
         
@@ -455,7 +456,7 @@ for fold in range(0, CONFIG['n_fold']):
     
     # Define Optimizer and Scheduler
     optimizer = AdamW(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
-    scheduler = fetch_scheduler(optimizer)
+    scheduler = fetch_scheduler(optimizer, len(train_loader))
     
     model, history = run_training(model, optimizer, scheduler,
                                   device=CONFIG['device'],
