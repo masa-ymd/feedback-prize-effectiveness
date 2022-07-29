@@ -430,7 +430,7 @@ def fetch_scheduler(optimizer, n_steps):
     elif CONFIG['scheduler'] == 'CosineAnnealingWarmRestarts':
         scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=CONFIG['T_0'], 
                                                              eta_min=CONFIG['min_lr'])
-    elif CONFIG['scheduler'] == ':CosineLRScheduler':
+    elif CONFIG['scheduler'] == 'CosineLRScheduler':
         scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] + n_steps + 1, lr_min=1e-4, 
                                   warmup_t=n_steps * CONFIG['n_warmup_epochs'] + 1, warmup_lr_init=5e-5, warmup_prefix=True)
     elif CONFIG['scheduler'] == None:
