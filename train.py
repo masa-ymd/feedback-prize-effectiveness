@@ -260,7 +260,7 @@ class FeedBackModel(nn.Module):
         super(FeedBackModel, self).__init__()
         self.model = AutoModel.from_pretrained(model_name)
         self.model.resize_token_embeddings(len(tokenizer))
-        (self.model).gradient_checkpointing_enable()
+        #(self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.drop = nn.Dropout(p=0.2)
