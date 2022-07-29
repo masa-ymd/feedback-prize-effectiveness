@@ -282,6 +282,7 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
     model.train()
 
     scaler = torch.cuda.amp.GradScaler()
+    n_steps = len(dataloader)
     
     dataset_size = 0
     running_loss = 0.0
@@ -312,7 +313,7 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
             optimizer.zero_grad()
 
             if scheduler is not None:
-                scheduler.step(step + 1)
+                scheduler.step(epoch * n_steps + step + 1)
 
         scaler.update()
                 
