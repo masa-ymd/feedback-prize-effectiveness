@@ -321,7 +321,7 @@ class Collate:
         return output
 
 #collate_fn = DataCollatorWithPadding(tokenizer=CONFIG['tokenizer'])
-collate_fn = Collate(CFG.tokenizer)
+collate_fn = Collate(CONFIG['tokenizer'])
 
 class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
