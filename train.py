@@ -260,7 +260,7 @@ class FeedBackModel(nn.Module):
         super(FeedBackModel, self).__init__()
         self.model = AutoModel.from_pretrained(model_name)
         self.model.resize_token_embeddings(len(tokenizer))
-        #(self.model).gradient_checkpointing_enable()
+        (self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.drop = nn.Dropout(p=0.2)
@@ -295,19 +295,21 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
         
         batch_size = ids.size(0)
 
-        with torch.cuda.amp.autocast(enabled=True):
-            outputs = model(ids, mask)
+        #with torch.cuda.amp.autocast(enabled=True):
+        #    outputs = model(ids, mask)
+        outputs = model(ids, mask)
         
         loss = criterion(outputs, targets)
         loss = loss / CONFIG['n_accumulate']
         
-        scaler.scale(loss).backward()
+        #scaler.scale(loss).backward()
+        loss.backward()
         
         if (step + 1) % CONFIG['n_accumulate'] == 0:
-            #optimizer.step()
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
-            scaler.step(optimizer)
+            optimizer.step()
+            #scaler.unscale_(optimizer)
+            #torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            #scaler.step(optimizer)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -315,7 +317,7 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
             if scheduler is not None:
                 scheduler.step((epoch-1) * n_steps + step + 1)
 
-        scaler.update()
+        #scaler.update()
                 
         running_loss += (loss.item() * batch_size)
         dataset_size += batch_size
