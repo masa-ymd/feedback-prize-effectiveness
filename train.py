@@ -314,8 +314,8 @@ class FeedBackModel(nn.Module):
         outputs = self.fc(out)
         return outputs
 
-    def freezed_parameters(self):
-        return freezed_parameters(self.model)
+    def get_parameters(self):
+        return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
 
 def criterion(outputs, labels):
     return nn.CrossEntropyLoss()(outputs, labels)
@@ -504,7 +504,7 @@ for fold in range(0, CONFIG['n_fold']):
     # selecting parameters, which requires gradients and initializing optimizer
     model_parameters = filter(lambda parameter: parameter.requires_grad, model.parameters())
     #optimizer = AdamW(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
-    optimizer = AdamW(model.freezed_parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
+    optimizer = AdamW(model.get_parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
     scheduler = fetch_scheduler(optimizer, len(train_loader))
     
     model, history = run_training(model, optimizer, scheduler,
