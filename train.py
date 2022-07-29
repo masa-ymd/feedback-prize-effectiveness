@@ -84,7 +84,7 @@ if not os.path.exists(MODEL_PATH):
     os.makedirs(f"{MODEL_PATH}/tokenizer")
 
 CONFIG = {"seed": 2022,
-          "epochs": 4,
+          "epochs": 3,
           #"model_name": "microsoft/deberta-v3-base",
           "model_name": "microsoft/deberta-v3-large",
           "train_batch_size": 16,
@@ -99,7 +99,7 @@ CONFIG = {"seed": 2022,
           "T_max": 500,
           "weight_decay": 0.01, #1e-6,
           "n_fold": 5,
-          "n_accumulate": 2,
+          "n_accumulate": 1,
           "num_classes": 3,
           "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
           "hash_name": HASH_NAME,
