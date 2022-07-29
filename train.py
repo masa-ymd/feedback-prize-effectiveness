@@ -293,9 +293,9 @@ class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
         self.model = AutoModel.from_pretrained(model_name)
-        # freezing embeddings and first 2 layers of encoder
+        # freezing embeddings and first 6 layers of encoder
         freeze(self.model.embeddings)
-        freeze(self.model.encoder.layer[:2])
+        freeze(self.model.encoder.layer[:6])
         freezed_parameters = get_freezed_parameters(self.model)
         print(f"Freezed parameters: {freezed_parameters}")
         self.model.resize_token_embeddings(len(tokenizer))
@@ -314,8 +314,8 @@ class FeedBackModel(nn.Module):
         outputs = self.fc(out)
         return outputs
 
-    def get_freezed_parameters(self):
-        return get_freezed_parameters(self.model)
+    def freezed_parameters(self):
+        return freezed_parameters(self.model)
 
 def criterion(outputs, labels):
     return nn.CrossEntropyLoss()(outputs, labels)
@@ -504,7 +504,7 @@ for fold in range(0, CONFIG['n_fold']):
     # selecting parameters, which requires gradients and initializing optimizer
     model_parameters = filter(lambda parameter: parameter.requires_grad, model.parameters())
     #optimizer = AdamW(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
-    optimizer = AdamW(model.get_freezed_parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
+    optimizer = AdamW(model.freezed_parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
     scheduler = fetch_scheduler(optimizer, len(train_loader))
     
     model, history = run_training(model, optimizer, scheduler,
