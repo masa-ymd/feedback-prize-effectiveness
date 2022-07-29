@@ -440,6 +440,26 @@ def fetch_scheduler(optimizer, n_steps):
         
     return scheduler
 
+def freeze(module):
+    """
+    Freezes module's parameters.
+    """
+    
+    for parameter in module.parameters():
+        parameter.requires_grad = False
+        
+def get_freezed_parameters(module):
+    """
+    Returns names of freezed parameters of the given module.
+    """
+    
+    freezed_parameters = []
+    for name, parameter in module.named_parameters():
+        if not parameter.requires_grad:
+            freezed_parameters.append(name)
+            
+    return freezed_parameters
+
 for fold in range(0, CONFIG['n_fold']):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
     run = wandb.init(project='FeedBack', 
@@ -455,9 +475,19 @@ for fold in range(0, CONFIG['n_fold']):
     
     model = FeedBackModel(CONFIG['model_name'], CONFIG['tokenizer'])
     model.to(CONFIG['device'])
+
+    # freezing embeddings and first 2 layers of encoder
+    freeze(model.embeddings)
+    freeze(model.encoder.layer[:2])
+
+    freezed_parameters = get_freezed_parameters(model)
+    print(f"Freezed parameters: {freezed_parameters}")
     
     # Define Optimizer and Scheduler
-    optimizer = AdamW(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
+    # selecting parameters, which requires gradients and initializing optimizer
+    model_parameters = filter(lambda parameter: parameter.requires_grad, model.parameters())
+    #optimizer = AdamW(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
+    optimizer = AdamW(model_parameters, lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
     scheduler = fetch_scheduler(optimizer, len(train_loader))
     
     model, history = run_training(model, optimizer, scheduler,
