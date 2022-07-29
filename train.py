@@ -210,6 +210,26 @@ df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectivenes
 with open(f"{MODEL_PATH}/le.pkl", "wb") as fp:
     joblib.dump(encoder, fp)
 
+def freeze(module):
+    """
+    Freezes module's parameters.
+    """
+    
+    for parameter in module.parameters():
+        parameter.requires_grad = False
+        
+def get_freezed_parameters(module):
+    """
+    Returns names of freezed parameters of the given module.
+    """
+    
+    freezed_parameters = []
+    for name, parameter in module.named_parameters():
+        if not parameter.requires_grad:
+            freezed_parameters.append(name)
+            
+    return freezed_parameters
+
 class MeanPooling(nn.Module):
     def __init__(self):
         super(MeanPooling, self).__init__()
@@ -259,6 +279,11 @@ class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
         self.model = AutoModel.from_pretrained(model_name)
+        # freezing embeddings and first 2 layers of encoder
+        freeze(self.model.embeddings)
+        freeze(self.model.encoder.layer[:2])
+        freezed_parameters = get_freezed_parameters(self.model)
+        print(f"Freezed parameters: {freezed_parameters}")
         self.model.resize_token_embeddings(len(tokenizer))
         (self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
@@ -274,6 +299,9 @@ class FeedBackModel(nn.Module):
         out = self.drop(out)
         outputs = self.fc(out)
         return outputs
+
+    def get_freezed_parameters():
+        return get_freezed_parameters(self.model)
 
 def criterion(outputs, labels):
     return nn.CrossEntropyLoss()(outputs, labels)
@@ -440,25 +468,7 @@ def fetch_scheduler(optimizer, n_steps):
         
     return scheduler
 
-def freeze(module):
-    """
-    Freezes module's parameters.
-    """
-    
-    for parameter in module.parameters():
-        parameter.requires_grad = False
-        
-def get_freezed_parameters(module):
-    """
-    Returns names of freezed parameters of the given module.
-    """
-    
-    freezed_parameters = []
-    for name, parameter in module.named_parameters():
-        if not parameter.requires_grad:
-            freezed_parameters.append(name)
-            
-    return freezed_parameters
+
 
 for fold in range(0, CONFIG['n_fold']):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
@@ -475,19 +485,12 @@ for fold in range(0, CONFIG['n_fold']):
     
     model = FeedBackModel(CONFIG['model_name'], CONFIG['tokenizer'])
     model.to(CONFIG['device'])
-
-    # freezing embeddings and first 2 layers of encoder
-    freeze(model.embeddings)
-    freeze(model.encoder.layer[:2])
-
-    freezed_parameters = get_freezed_parameters(model)
-    print(f"Freezed parameters: {freezed_parameters}")
     
     # Define Optimizer and Scheduler
     # selecting parameters, which requires gradients and initializing optimizer
     model_parameters = filter(lambda parameter: parameter.requires_grad, model.parameters())
     #optimizer = AdamW(model.parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
-    optimizer = AdamW(model_parameters, lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
+    optimizer = AdamW(model.get_freezed_parameters(), lr=CONFIG['learning_rate'], weight_decay=CONFIG['weight_decay'])
     scheduler = fetch_scheduler(optimizer, len(train_loader))
     
     model, history = run_training(model, optimizer, scheduler,
