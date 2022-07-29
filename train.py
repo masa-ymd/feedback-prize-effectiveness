@@ -92,6 +92,7 @@ CONFIG = {"seed": 2022,
           "max_length": 512,
           #"learning_rate": 1e-5, #3e-5, 2e-5
           "learning_rate": 1e-5,
+          "warmup_lr_init": 1e-6,
           #"scheduler": 'CosineAnnealingWarmRestarts',
           "scheduler": 'CosineLRScheduler',
           "min_lr": 1e-6,
@@ -432,7 +433,7 @@ def fetch_scheduler(optimizer, n_steps):
                                                              eta_min=CONFIG['min_lr'])
     elif CONFIG['scheduler'] == 'CosineLRScheduler':
         scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] + n_steps + 1, lr_min=1e-4, 
-                                  warmup_t=n_steps * CONFIG['n_warmup_epochs'] + 1, warmup_lr_init=5e-5, warmup_prefix=True)
+                                  warmup_t=n_steps * CONFIG['n_warmup_epochs'] + 1, warmup_lr_init=CONFIG['warmup_lr_init'], warmup_prefix=True)
     elif CONFIG['scheduler'] == None:
         return None
         
