@@ -311,7 +311,7 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
             optimizer.zero_grad()
 
             if scheduler is not None:
-                scheduler.step()
+                scheduler.step(step + 1)
 
         scaler.update()
                 
