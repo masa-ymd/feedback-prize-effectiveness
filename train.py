@@ -46,7 +46,7 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 import wandb
 
-#from timm.scheduler import CosineLRScheduler
+from timm.scheduler import CosineLRScheduler
 
 """
 try:
