@@ -339,7 +339,7 @@ class FeedBackModel(nn.Module):
         self.config = AutoConfig.from_pretrained(model_name)
         self.drop = nn.Dropout(p=0.2)
         self.drop1 = nn.Dropout(p=0.1)
-        self.drop2 = nn.Dropout(P-0.2)
+        self.drop2 = nn.Dropout(P=0.2)
         self.drop3 = nn.Dropout(P=0.3)
         self.drop4 = nn.Dropout(p=0.4)
         self.drop5 = nn.Dropout(p=0.5)
