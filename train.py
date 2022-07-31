@@ -521,7 +521,7 @@ def fetch_scheduler(optimizer, n_steps):
                                                              eta_min=CONFIG['min_lr'])
     elif CONFIG['scheduler'] == 'CosineLRScheduler':
         scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] * n_steps + 1, lr_min=CONFIG['min_lr'], 
-                                  warmup_t=rount(n_steps * CONFIG['n_warmup_epochs'] + 1), warmup_lr_init=CONFIG['warmup_lr_init'],
+                                  warmup_t=round(n_steps * CONFIG['n_warmup_epochs'] + 1), warmup_lr_init=CONFIG['warmup_lr_init'],
                                   warmup_prefix=True)
     elif CONFIG['scheduler'] == None:
         return None
