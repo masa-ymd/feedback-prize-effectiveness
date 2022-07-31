@@ -97,7 +97,7 @@ CONFIG = {"seed": 2022,
           "scheduler": 'CosineLRScheduler',
           "min_lr": 1e-6,
           "T_max": 500,
-          "weight_decay": 0.01, #1e-6,
+          "weight_decay": 0.1, #1e-6,
           "n_fold": 5,
           "n_accumulate": 1,
           "num_classes": 3,
@@ -106,7 +106,7 @@ CONFIG = {"seed": 2022,
           "competition": "FeedBack",
           "_wandb_kernel": "deb",
           "T_0": 50,
-          "n_warmup_epochs": 1,
+          "n_warmup_epochs": 0.5,
           }
 
 tokenizer = AutoTokenizer.from_pretrained(CONFIG['model_name'], use_fast=True)
@@ -186,8 +186,8 @@ print("=== get essay ===")
 df['essay_text'] = df['essay_id'].progress_apply(get_essay)
 print("=== add_special_tokens ===")
 df['discourse_type_category'] = df.progress_apply(add_special_tokens, axis=1)
-print("=== replace_target_to_special_token ===")
-df['essay_text'] = df.progress_apply(replace_target_to_special_token, axis=1)
+#print("=== replace_target_to_special_token ===")
+#df['essay_text'] = df.progress_apply(replace_target_to_special_token, axis=1)
 print("=== resolve_encodings_and_normalize(discourse_text) ===")
 df['discourse_text'] = df['discourse_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
 print("=== resolve_encodings_and_normalize(essay_text) ===")
@@ -273,7 +273,8 @@ class FeedBackDataset(Dataset):
         discourse = self.discourse[index]
         essay = self.essay[index]
         discourse_type_category = self.discourse_type_category[index]
-        text = discourse_type_category + discourse + '[BEFORE_DISCOURSE]' + essay
+        #text = discourse_type_category + discourse + '[BEFORE_DISCOURSE]' + essay
+        text = discourse_type_category + discourse + '[SEP]' + essay
         inputs = self.tokenizer.encode_plus(
                         text,
                         truncation=True,
@@ -337,6 +338,11 @@ class FeedBackModel(nn.Module):
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.drop = nn.Dropout(p=0.2)
+        self.drop1 = nn.Dropout(p=0.1)
+        self.drop2 = nn.Dropout(P-0.2)
+        self.drop3 = nn.Dropout(P=0.3)
+        self.drop4 = nn.Dropout(p=0.4)
+        self.drop5 = nn.Dropout(p=0.5)
         self.pooler = MeanPooling()
         self.fc = nn.Linear(self.config.hidden_size, CONFIG['num_classes'])
         
@@ -345,6 +351,11 @@ class FeedBackModel(nn.Module):
                          output_hidden_states=False)
         out = self.pooler(out.last_hidden_state, mask)
         out = self.drop(out)
+        out = self.drop1(out)
+        out = self.drop2(out)
+        out = self.drop3(out)
+        out = self.drop4(out)
+        out = self.drop5(out)
         outputs = self.fc(out)
         return outputs
 
@@ -509,8 +520,9 @@ def fetch_scheduler(optimizer, n_steps):
         scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=CONFIG['T_0'], 
                                                              eta_min=CONFIG['min_lr'])
     elif CONFIG['scheduler'] == 'CosineLRScheduler':
-        scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] + n_steps + 1, lr_min=CONFIG['min_lr'], 
-                                  warmup_t=n_steps * CONFIG['n_warmup_epochs'] + 1, warmup_lr_init=CONFIG['warmup_lr_init'], warmup_prefix=True)
+        scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] * n_steps + 1, lr_min=CONFIG['min_lr'], 
+                                  warmup_t=rount(n_steps * CONFIG['n_warmup_epochs'] + 1), warmup_lr_init=CONFIG['warmup_lr_init'],
+                                  warmup_prefix=True)
     elif CONFIG['scheduler'] == None:
         return None
         
