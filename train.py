@@ -297,8 +297,8 @@ class FeedBackDataset(Dataset):
         self.max_len = max_length
         self.tokenizer = tokenizer
         self.discourse_type_category = df['discourse_type_category'].values
-        self.discourse = df['discourse_text'].values
-        self.essay = df['essay_text'].values
+        self.discourse = df['short_discourse_text'].values
+        self.essay = df['short_essay_text'].values
         self.targets = df['discourse_effectiveness'].values
         
     def __len__(self):
