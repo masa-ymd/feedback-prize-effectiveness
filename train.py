@@ -181,6 +181,32 @@ def add_special_tokens(x):
 def replace_target_to_special_token(x):
     return x.essay_text.replace(x.discourse_text, '[AFTER_DISCOURSE]')
 
+def short_discourse_text(x):
+    tokenizer=CONFIG['tokenizer']
+    t = tokenizer(x.discourse_text).input_ids
+    if len(t) > 400:
+        #print(tokenizer.decode(t[:200] + t[-200:], skip_special_tokens=True))
+        return tokenizer.decode(t[:200] + t[-200:], skip_special_tokens=True)
+    else:
+        return x.discourse_text
+
+def count_short_discourse_text_len(x):
+    tokenizer=CONFIG['tokenizer']
+    return len(tokenizer(x.short_discourse_text).input_ids)
+
+def short_essay_text(x):
+    tokenizer=CONFIG['tokenizer']
+    max_len = (508 - x.short_discourse_text_len) // 2
+    t = tokenizer(x.essay_text).input_ids
+    if len(t) > max_len * 2:
+        return tokenizer.decode(t[:max_len] + t[-max_len:], skip_special_tokens=True)
+    else:
+        return x.essay_text
+
+def count_total_len(x):
+    tokenizer=CONFIG['tokenizer']
+    return len(tokenizer(x.short_discourse_text).input_ids + tokenizer(x.short_essay_text).input_ids)
+
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 print("=== get essay ===")
 df['essay_text'] = df['essay_id'].progress_apply(get_essay)
@@ -192,7 +218,16 @@ print("=== resolve_encodings_and_normalize(discourse_text) ===")
 df['discourse_text'] = df['discourse_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
 print("=== resolve_encodings_and_normalize(essay_text) ===")
 df['essay_text'] = df['essay_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
+print("=== short_discourse_text ===")
+df['short_discourse_text'] = df.progress_apply(short_discourse_text, axis=1)
+print("=== count_short_discourse_text_len ===")
+df['short_discourse_text_len'] = df.progress_apply(count_short_discourse_text_len, axis=1)
+print("=== short_essay_text ===")
+df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
+print("=== count_total_len ===")
+df['total_len'] = df.progress_apply(count_total_len, axis=1)
 print(df.head())
+print(df.total_len.discribe())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
 
