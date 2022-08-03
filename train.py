@@ -93,8 +93,8 @@ CONFIG = {"seed": 2022,
           #"learning_rate": 1e-5, #3e-5, 2e-5
           "learning_rate": 1e-5,
           "warmup_lr_init": 1e-6,
-          #"scheduler": 'CosineAnnealingWarmRestarts',
-          "scheduler": 'CosineLRScheduler',
+          "scheduler": 'CosineAnnealingWarmRestarts',
+          #"scheduler": 'CosineLRScheduler',
           "min_lr": 1e-6,
           "T_max": 500,
           "weight_decay": 0.1, #1e-6,
@@ -227,7 +227,7 @@ df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
 print("=== count_total_len ===")
 df['total_len'] = df.progress_apply(count_total_len, axis=1)
 print(df.head())
-print(df.total_len.discribe())
+print(df.total_len.describe())
 
 gkf = GroupKFold(n_splits=CONFIG['n_fold'])
 
@@ -436,7 +436,8 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
             optimizer.zero_grad()
 
             if scheduler is not None:
-                scheduler.step((epoch-1) * n_steps + step + 1)
+                #scheduler.step((epoch-1) * n_steps + step + 1)
+                scheduler.step()
 
                 
         running_loss += (loss.item() * batch_size)
