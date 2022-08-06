@@ -370,9 +370,9 @@ class FeedBackModel(nn.Module):
         output_hidden_states=None,
         return_dict=None
     ):        
-        out = self.model(input_ids=ids,attention_mask=mask,
-                         output_hidden_states=False)
-        out = self.pooler(out.last_hidden_state, mask)
+        out = self.model(input_ids=input_ids,attention_mask=attention_mask,
+                         output_hidden_states=output_hidden_states)
+        out = self.pooler(out.last_hidden_state, attention_mask)
         out = self.drop(out)
         out = self.drop1(out)
         out = self.drop2(out)
