@@ -450,8 +450,8 @@ for fold in range(0, config.n_folds):
     trainer = Trainer(
         model,
         args,
-        train_dataset=train_loader,
-        eval_dataset=valid_loader,
+        train_dataset=train_dataset,
+        eval_dataset=valid_dataset,
         tokenizer=tokenizer,
         data_collator=collate_fn,
         compute_metrics=criterion
