@@ -61,6 +61,9 @@ tqdm.pandas()
 
 torch.backends.cudnn.benchmark = True
 
+tdatetime = dt.now()
+tstr = tdatetime.strftime('%Y%m%d%H%M%S')
+
 """
 def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
@@ -72,7 +75,7 @@ print(HASH_NAME)
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
 TRAIN_DIR = f"{BASE_PATH}/train"
 TEST_DIR = f"{BASE_PATH}/test"
-MODEL_PATH = f"/root/kaggle/feedback-prize-effectiveness/models/{HASH_NAME}"
+MODEL_PATH = f"/root/kaggle/feedback-prize-effectiveness/models/{tstr}"
 
 if not os.path.exists(MODEL_PATH):
     os.makedirs(MODEL_PATH)
@@ -96,14 +99,10 @@ config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
 config.eval_per_epoch = 2
+config.group = f'{tstr}-Baseline'
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
 tokenizer.model_max_length = config.max_len
-
-tdatetime = dt.now()
-tstr = tdatetime.strftime('%Y%m%d%H%M%S')
-
-config.group = f'{tstr}-Baseline'
 
 additional_special_tokens = {"additional_special_tokens":[
     "[CAT_LEAD]",
