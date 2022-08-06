@@ -380,7 +380,9 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
-        return nn.CrossEntropyLoss()(outputs, labels)
+        print(outputs)
+        print(labels)
+        return nn.CrossEntropyLoss()(outputs, labels).view(-1)
 
     def get_parameters(self):
         return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
