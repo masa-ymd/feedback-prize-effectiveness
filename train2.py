@@ -359,7 +359,17 @@ class FeedBackModel(nn.Module):
         self.pooler = MeanPooling()
         self.fc = nn.Linear(self.config.hidden_size, 3)
         
-    def forward(self, ids, mask):        
+    def forward(self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        inputs_embeds=None,
+        labels=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None
+    ):        
         out = self.model(input_ids=ids,attention_mask=mask,
                          output_hidden_states=False)
         out = self.pooler(out.last_hidden_state, mask)
@@ -375,7 +385,8 @@ class FeedBackModel(nn.Module):
     def get_parameters(self):
         return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
 
-def criterion(outputs, labels):
+def criterion(res):
+    outputs, labels = res
     return nn.CrossEntropyLoss()(outputs, labels)
 
 """
