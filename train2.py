@@ -61,11 +61,13 @@ tqdm.pandas()
 
 torch.backends.cudnn.benchmark = True
 
+"""
 def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
 
 HASH_NAME = id_generator(size=12)
 print(HASH_NAME)
+"""
 
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
 TRAIN_DIR = f"{BASE_PATH}/train"
@@ -356,7 +358,7 @@ class FeedBackModel(nn.Module):
         self.drop4 = nn.Dropout(p=0.4)
         self.drop5 = nn.Dropout(p=0.5)
         self.pooler = MeanPooling()
-        self.fc = nn.Linear(self.config.hidden_size, CONFIG['num_classes'])
+        self.fc = nn.Linear(self.config.hidden_size, 3)
         
     def forward(self, ids, mask):        
         out = self.model(input_ids=ids,attention_mask=mask,
