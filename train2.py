@@ -6,6 +6,7 @@ import random
 import string
 import joblib
 from types import SimpleNamespace
+from datetime import datetime as dt
 
 # For data manipulation
 import numpy as np
@@ -96,7 +97,10 @@ config.eval_per_epoch = 2
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
 tokenizer.model_max_length = config.max_len
 
-CONFIG['group'] = f'{HASH_NAME}-Baseline'
+tdatetime = dt.now()
+tstr = tdatetime.strftime('%Y%m%d%H%M%S')
+
+config.group = f'{tstr}-Baseline'
 
 additional_special_tokens = {"additional_special_tokens":[
     "[CAT_LEAD]",
@@ -164,7 +168,6 @@ def replace_target_to_special_token(x):
     return x.essay_text.replace(x.discourse_text, '[AFTER_DISCOURSE]')
 
 def short_discourse_text(x):
-    tokenizer=CONFIG['tokenizer']
     t = tokenizer(x.discourse_text).input_ids
     if len(t) > 400:
         return tokenizer.decode(t[:200] + t[-200:], skip_special_tokens=True)
@@ -172,11 +175,9 @@ def short_discourse_text(x):
         return x.discourse_text
 
 def count_short_discourse_text_len(x):
-    tokenizer=CONFIG['tokenizer']
     return len(tokenizer(x.short_discourse_text).input_ids)
 
 def short_essay_text(x):
-    tokenizer=CONFIG['tokenizer']
     max_len = (508 - x.short_discourse_text_len) // 2
     t = tokenizer(x.essay_text).input_ids
     if len(t) > max_len * 2:
@@ -185,7 +186,6 @@ def short_essay_text(x):
         return x.essay_text
 
 def count_total_len(x):
-    tokenizer=CONFIG['tokenizer']
     return len(tokenizer(x.short_discourse_text).input_ids + tokenizer(x.short_essay_text).input_ids)
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
@@ -376,6 +376,7 @@ class FeedBackModel(nn.Module):
 def criterion(outputs, labels):
     return nn.CrossEntropyLoss()(outputs, labels)
 
+"""
 def fetch_scheduler(optimizer, n_steps):
     if CONFIG['scheduler'] == 'CosineAnnealingLR':
         scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=CONFIG['T_max'], 
@@ -391,15 +392,16 @@ def fetch_scheduler(optimizer, n_steps):
         return None
         
     return scheduler
+"""
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
     run = wandb.init(project='FeedBack', 
-                     config=CONFIG,
+                     config=config,
                      job_type='Train',
-                     group=CONFIG['group'],
-                     tags=[CONFIG['model_name'], f'{HASH_NAME}'],
-                     name=f'{HASH_NAME}-fold-{fold}',
+                     group=config.group,
+                     tags=[config.model_name, f'{tstr}'],
+                     name=f'{tstr}-fold-{fold}',
                      anonymous='must')
     
     # Create Dataloaders
