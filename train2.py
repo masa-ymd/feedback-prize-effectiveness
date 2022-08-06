@@ -28,7 +28,7 @@ from collections import defaultdict
 
 # Sklearn Imports
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import GroupKFold, KFold
+from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold
 
 # For Transformer Models
 from transformers import AutoTokenizer, AutoModel, AutoConfig, AdamW
