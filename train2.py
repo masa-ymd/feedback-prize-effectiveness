@@ -420,9 +420,9 @@ for fold in range(0, config.n_folds):
                      anonymous='must')
     
     # Create Dataloaders
-    df.describe()
-    df_train = df[df.kfold != fold].reset_index(drop=True).rename({'discourse_effectiveness':'label'}, axis=1)
-    df_valid = df[df.kfold == fold].reset_index(drop=True).rename({'discourse_effectiveness':'label'}, axis=1)
+    print(df.describe())
+    df_train = df[df.kfold != fold].reset_index(drop=True).rename(columns={'discourse_effectiveness':'label'})
+    df_valid = df[df.kfold == fold].reset_index(drop=True).rename(columns={'discourse_effectiveness':'label'})
     
     train_dataset = FeedBackDataset(df_train, tokenizer=tokenizer, max_length=config.max_len)
     valid_dataset = FeedBackDataset(df_valid, tokenizer=tokenizer, max_length=config.max_len)
