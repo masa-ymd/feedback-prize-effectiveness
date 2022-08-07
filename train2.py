@@ -385,7 +385,7 @@ class FeedBackModel(nn.Module):
         print(f"{labels}")
         print(nn.CrossEntropyLoss()(outputs, labels))
         print("hoge")
-        return nn.CrossEntropyLoss()(outputs, labels)
+        return {"loss": nn.CrossEntropyLoss()(outputs, labels)}
 
     def get_parameters(self):
         return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
