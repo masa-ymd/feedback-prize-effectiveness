@@ -218,8 +218,8 @@ for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discour
     df.loc[test_idxs, ['kfold']] = fold_num
 
 encoder = LabelEncoder()
-#df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectiveness'])
-df['label'] = encoder.fit_transform(df['discourse_effectiveness'])
+df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectiveness'])
+#df['label'] = encoder.fit_transform(df['discourse_effectiveness'])
 
 with open(f"{MODEL_PATH}/le.pkl", "wb") as fp:
     joblib.dump(encoder, fp)
@@ -299,7 +299,7 @@ class FeedBackDataset(Dataset):
         return {
             'input_ids': inputs['input_ids'],
             'attention_mask': inputs['attention_mask'],
-            'target': self.targets[index]
+            'labels': self.targets[index]
         }
 
 # Dynamic Padding (Collate)
