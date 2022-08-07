@@ -278,7 +278,7 @@ class FeedBackDataset(Dataset):
         self.discourse_type_category = df['discourse_type_category'].values
         self.discourse = df['short_discourse_text'].values
         self.essay = df['short_essay_text'].values
-        self.targets = df['discourse_effectiveness'].values
+        self.targets = df['label'].values
         
     def __len__(self):
         return len(self.df)
