@@ -381,8 +381,10 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
-        print(outputs)
-        print(labels)
+        print(f"{outputs}")
+        print(f"{labels}")
+        print(nn.CrossEntropyLoss()(outputs, labels))
+        print("hoge")
         return nn.CrossEntropyLoss()(outputs, labels)
 
     def get_parameters(self):
@@ -432,10 +434,10 @@ for fold in range(0, config.n_folds):
     train_dataset = FeedBackDataset(df_train, tokenizer=tokenizer, max_length=config.max_len)
     valid_dataset = FeedBackDataset(df_valid, tokenizer=tokenizer, max_length=config.max_len)
 
-    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, collate_fn=collate_fn, 
-                              num_workers=2, shuffle=True, pin_memory=True, drop_last=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=config.batch_size * 2, collate_fn=collate_fn,
-                              num_workers=2, shuffle=False, pin_memory=True)
+    #train_loader = DataLoader(train_dataset, batch_size=config.batch_size, collate_fn=collate_fn, 
+    #                          num_workers=2, shuffle=True, pin_memory=True, drop_last=True)
+    #valid_loader = DataLoader(valid_dataset, batch_size=config.batch_size * 2, collate_fn=collate_fn,
+    #                          num_workers=2, shuffle=False, pin_memory=True)
 
     num_steps = len(train_dataset) / config.batch_size / config.gradient_accumulation_steps
     eval_steps = num_steps // config.eval_per_epoch
