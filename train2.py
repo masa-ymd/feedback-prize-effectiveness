@@ -421,8 +421,11 @@ for fold in range(0, config.n_folds):
     
     # Create Dataloaders
     print(df.describe())
-    df_train = df[df.kfold != fold].reset_index(drop=True).rename(columns={'discourse_effectiveness':'label'})
-    df_valid = df[df.kfold == fold].reset_index(drop=True).rename(columns={'discourse_effectiveness':'label'})
+    df_train = df[df.kfold != fold].reset_index(drop=True)
+    print(df_train.describe())
+    df_train.rename(columns={'discourse_effectiveness':'label'}, inplace=True)
+    df_valid = df[df.kfold == fold].reset_index(drop=True)
+    df_valid.rename(columns={'discourse_effectiveness':'label'}, inplace=True)
     
     train_dataset = FeedBackDataset(df_train, tokenizer=tokenizer, max_length=config.max_len)
     valid_dataset = FeedBackDataset(df_valid, tokenizer=tokenizer, max_length=config.max_len)
