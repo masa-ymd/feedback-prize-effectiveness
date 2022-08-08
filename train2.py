@@ -379,6 +379,7 @@ class FeedBackModel(nn.Module):
 
 def criterion(res):
     print(res)
+    print(type(res))
     outputs, labels = res
     return nn.CrossEntropyLoss()(outputs, labels)
 
