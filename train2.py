@@ -90,7 +90,7 @@ config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
-config.eval_per_epoch = 30
+config.eval_per_epoch = 100
 config.group = f'{tstr}-Baseline'
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
@@ -372,6 +372,10 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
+        print(outputs)
+        print(type(outputs))
+        print(labels)
+        print(type(labels))
         return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
 
     def get_parameters(self):
