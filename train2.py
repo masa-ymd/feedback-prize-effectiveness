@@ -90,7 +90,7 @@ config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
-config.eval_per_epoch = 300
+config.eval_per_epoch = 2
 config.group = f'{tstr}-Baseline'
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
@@ -372,22 +372,13 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
-        print(outputs)
-        print(type(outputs))
-        print(labels)
-        print(type(labels))
         return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
 
     def get_parameters(self):
         return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
 
 def criterion(res):
-    print("hogehoge")
-    print(res)
-    print(type(res))
     outputs, labels = res
-    print(torch.from_numpy(outputs).to("cuda:0"))
-    print(torch.from_numpy(labels).long().to("cuda:0"))
     return {"loss": nn.CrossEntropyLoss()(
         torch.from_numpy(outputs).to("cuda:0"),
         torch.from_numpy(labels).long().to("cuda:0"))}
