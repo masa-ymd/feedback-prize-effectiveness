@@ -386,7 +386,7 @@ def criterion(res):
     print(labels)
     return nn.CrossEntropyLoss()(
         torch.from_numpy(outputs.astype(np.float32)).clone(),
-        torch.from_numpy(labels.astype(np.int32)).clone())
+        torch.from_numpy(labels.astype(np.float32)).clone())
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
