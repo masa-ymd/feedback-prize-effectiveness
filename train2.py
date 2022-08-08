@@ -90,7 +90,7 @@ config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
-config.eval_per_epoch = 100
+config.eval_per_epoch = 300
 config.group = f'{tstr}-Baseline'
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
@@ -386,11 +386,11 @@ def criterion(res):
     print(res)
     print(type(res))
     outputs, labels = res
-    print(outputs)
-    print(labels)
+    print(torch.from_numpy(outputs))
+    print(torch.from_numpy(labels))
     return nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs.astype(np.float16)).clone(),
-        torch.from_numpy(labels).clone())
+        torch.from_numpy(outputs),
+        torch.from_numpy(labels))
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
