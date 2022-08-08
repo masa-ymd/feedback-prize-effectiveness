@@ -372,10 +372,10 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
-        print(outputs)
-        print(type(outputs))
-        print(labels)
-        print(type(labels))
+        #print(outputs)
+        #print(type(outputs))
+        #print(labels)
+        #print(type(labels))
         return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
 
     def get_parameters(self):
@@ -389,8 +389,8 @@ def criterion(res):
     print(outputs)
     print(labels)
     return nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs.astype(np.float32)).clone(),
-        torch.from_numpy(labels.astype(np.int64)).clone())
+        torch.from_numpy(outputs.astype(np.float16)).clone(),
+        torch.from_numpy(labels).clone())
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
