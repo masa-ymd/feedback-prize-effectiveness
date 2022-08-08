@@ -84,7 +84,7 @@ config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
-config.batch_size = 24
+config.batch_size = 36
 config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
 config.max_len = 512
@@ -378,6 +378,7 @@ class FeedBackModel(nn.Module):
         return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
 
 def criterion(res):
+    print(res)
     outputs, labels = res
     return nn.CrossEntropyLoss()(outputs, labels)
 
