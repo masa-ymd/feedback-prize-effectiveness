@@ -64,14 +64,6 @@ torch.backends.cudnn.benchmark = True
 tdatetime = dt.now()
 tstr = tdatetime.strftime('%Y%m%d%H%M%S')
 
-"""
-def id_generator(size=12, chars=string.ascii_lowercase + string.digits):
-    return ''.join(random.SystemRandom().choice(chars) for _ in range(size))
-
-HASH_NAME = id_generator(size=12)
-print(HASH_NAME)
-"""
-
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
 TRAIN_DIR = f"{BASE_PATH}/train"
 TEST_DIR = f"{BASE_PATH}/test"
@@ -92,7 +84,7 @@ config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
-config.batch_size = 16
+config.batch_size = 24
 config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
 config.max_len = 512
@@ -219,7 +211,6 @@ for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discour
 
 encoder = LabelEncoder()
 df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectiveness'])
-#df['label'] = encoder.fit_transform(df['discourse_effectiveness'])
 
 with open(f"{MODEL_PATH}/le.pkl", "wb") as fp:
     joblib.dump(encoder, fp)
@@ -381,10 +372,6 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
-        print(f"{outputs}")
-        print(f"{labels}")
-        print(nn.CrossEntropyLoss()(outputs, labels))
-        print("hoge")
         return {"loss": nn.CrossEntropyLoss()(outputs, labels)}
 
     def get_parameters(self):
@@ -393,24 +380,6 @@ class FeedBackModel(nn.Module):
 def criterion(res):
     outputs, labels = res
     return nn.CrossEntropyLoss()(outputs, labels)
-
-"""
-def fetch_scheduler(optimizer, n_steps):
-    if CONFIG['scheduler'] == 'CosineAnnealingLR':
-        scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=CONFIG['T_max'], 
-                                                   eta_min=CONFIG['min_lr'])
-    elif CONFIG['scheduler'] == 'CosineAnnealingWarmRestarts':
-        scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=CONFIG['T_0'], 
-                                                             eta_min=CONFIG['min_lr'])
-    elif CONFIG['scheduler'] == 'CosineLRScheduler':
-        scheduler = CosineLRScheduler(optimizer, t_initial=CONFIG['epochs'] * n_steps + 1, lr_min=CONFIG['min_lr'], 
-                                  warmup_t=round(n_steps * CONFIG['n_warmup_epochs'] + 1), warmup_lr_init=CONFIG['warmup_lr_init'],
-                                  warmup_prefix=True)
-    elif CONFIG['scheduler'] == None:
-        return None
-        
-    return scheduler
-"""
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
@@ -423,21 +392,11 @@ for fold in range(0, config.n_folds):
                      anonymous='must')
     
     # Create Dataloaders
-    print(df.columns)
     df_train = df[df.kfold != fold].reset_index(drop=True)
-    #df_train.rename(columns={'discourse_id': 'hoge'}, inplace=True)
-    print(df_train.columns)
-    #df_train.rename(columns={'discourse_effectiveness': 'label'}, inplace=True)
     df_valid = df[df.kfold == fold].reset_index(drop=True)
-    #df_valid.rename(columns={'discourse_effectiveness': 'label'}, inplace=True)
     
     train_dataset = FeedBackDataset(df_train, tokenizer=tokenizer, max_length=config.max_len)
     valid_dataset = FeedBackDataset(df_valid, tokenizer=tokenizer, max_length=config.max_len)
-
-    #train_loader = DataLoader(train_dataset, batch_size=config.batch_size, collate_fn=collate_fn, 
-    #                          num_workers=2, shuffle=True, pin_memory=True, drop_last=True)
-    #valid_loader = DataLoader(valid_dataset, batch_size=config.batch_size * 2, collate_fn=collate_fn,
-    #                          num_workers=2, shuffle=False, pin_memory=True)
 
     num_steps = len(train_dataset) / config.batch_size / config.gradient_accumulation_steps
     eval_steps = num_steps // config.eval_per_epoch
