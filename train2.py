@@ -386,11 +386,11 @@ def criterion(res):
     print(res)
     print(type(res))
     outputs, labels = res
-    print(torch.from_numpy(outputs))
-    print(torch.from_numpy(labels).long())
+    print(torch.from_numpy(outputs).to("cuda:0"))
+    print(torch.from_numpy(labels).long().to("cuda:0"))
     return nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs),
-        torch.from_numpy(labels).long())
+        torch.from_numpy(outputs).to("cuda:0"),
+        torch.from_numpy(labels).long().to("cuda:0"))
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
