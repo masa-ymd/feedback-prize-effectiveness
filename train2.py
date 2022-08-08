@@ -202,7 +202,7 @@ df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
 #print("=== count_total_len ===")
 #df['total_len'] = df.progress_apply(count_total_len, axis=1)
 print(df.head())
-print(df.total_len.describe())
+#print(df.total_len.describe())
 
 cv = StratifiedKFold(n_splits=config.n_folds, shuffle=True, random_state=config.seed)
 df['kfold'] = -1
