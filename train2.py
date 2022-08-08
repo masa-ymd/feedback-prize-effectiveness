@@ -90,7 +90,7 @@ config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
-config.eval_per_epoch = 2
+config.eval_per_epoch = 30
 config.group = f'{tstr}-Baseline'
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
@@ -378,9 +378,12 @@ class FeedBackModel(nn.Module):
         return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
 
 def criterion(res):
+    print("hogehoge")
     print(res)
     print(type(res))
     outputs, labels = res
+    print(outputs)
+    print(labels)
     return nn.CrossEntropyLoss()(outputs, labels)
 
 for fold in range(0, config.n_folds):
