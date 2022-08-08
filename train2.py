@@ -372,10 +372,10 @@ class FeedBackModel(nn.Module):
         out = self.drop4(out)
         out = self.drop5(out)
         outputs = self.fc(out)
-        #print(outputs)
-        #print(type(outputs))
-        #print(labels)
-        #print(type(labels))
+        print(outputs)
+        print(type(outputs))
+        print(labels)
+        print(type(labels))
         return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
 
     def get_parameters(self):
@@ -387,7 +387,7 @@ def criterion(res):
     print(type(res))
     outputs, labels = res
     print(torch.from_numpy(outputs))
-    print(torch.from_numpy(labels))
+    print(torch.from_numpy(labels).long())
     return nn.CrossEntropyLoss()(
         torch.from_numpy(outputs),
         torch.from_numpy(labels).long())
