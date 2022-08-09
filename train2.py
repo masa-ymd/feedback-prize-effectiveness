@@ -429,6 +429,7 @@ for fold in range(0, config.n_folds):
         weight_decay=config.weight_decay,
         report_to="wandb",
 
+        logging_steps=50,
         evaluation_strategy='steps',
         eval_steps=eval_steps, 
         save_strategy='steps',
