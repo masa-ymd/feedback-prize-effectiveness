@@ -63,7 +63,8 @@ tqdm.pandas()
 
 torch.backends.cudnn.benchmark = True
 
-tdatetime = dt.now()
+jst = timezone(timedelta(hours=+9), 'JST')
+tdatetime = dt.now(jst)
 tstr = tdatetime.strftime('%Y-%m-%d_%H:%M:%S')
 
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
@@ -92,7 +93,7 @@ config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
-config.eval_per_epoch = 500
+config.eval_per_epoch = 2
 config.group = f'{tstr}-exp'
 config.num_msd = 6
 
@@ -383,10 +384,10 @@ class FeedBackModel(nn.Module):
 
 def criterion(res):
     outputs, labels = res
-    print()
-    print("hogehoge")
-    print(outputs)
-    print(labels)
+    #print()
+    #print("hogehoge")
+    #print(outputs)
+    #print(labels)
     loss = nn.CrossEntropyLoss()(
         torch.from_numpy(outputs).to("cuda:0"),
         torch.from_numpy(labels).long().to("cuda:0"))
