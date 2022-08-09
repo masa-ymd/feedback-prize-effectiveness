@@ -390,7 +390,7 @@ def criterion(res):
     loss = nn.CrossEntropyLoss()(
         torch.from_numpy(outputs).to("cuda:0"),
         torch.from_numpy(labels).long().to("cuda:0"))
-    return {"cross_entropy_loss": loss}
+    return {"loss": loss}
     #return {"loss": nn.CrossEntropyLoss()(
     #    torch.from_numpy(outputs).to("cuda:0"),
     #    torch.from_numpy(labels).long().to("cuda:0"))}
@@ -433,7 +433,7 @@ for fold in range(0, config.n_folds):
         save_strategy='steps',
         save_steps=eval_steps,
 
-        metric_for_best_model='cross_entropy_loss',
+        #metric_for_best_model='cross_entropy_loss',
         
         load_best_model_at_end=True,
         gradient_accumulation_steps=config.gradient_accumulation_steps,
