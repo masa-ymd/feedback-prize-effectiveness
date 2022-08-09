@@ -214,26 +214,6 @@ df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectivenes
 with open(f"{MODEL_PATH}/le.pkl", "wb") as fp:
     joblib.dump(encoder, fp)
 
-def freeze(module):
-    """
-    Freezes module's parameters.
-    """
-    
-    for parameter in module.parameters():
-        parameter.requires_grad = False
-        
-def get_freezed_parameters(module):
-    """
-    Returns names of freezed parameters of the given module.
-    """
-    
-    freezed_parameters = []
-    for name, parameter in module.named_parameters():
-        if not parameter.requires_grad:
-            freezed_parameters.append(name)
-            
-    return freezed_parameters
-
 class FeedBackDataset(Dataset):
     def __init__(self, df, tokenizer, max_length):
         self.df = df
@@ -300,6 +280,26 @@ class Collate:
 
 collate_fn = DataCollatorWithPadding(tokenizer=tokenizer)
 #collate_fn = Collate(CONFIG['tokenizer'])
+
+def freeze(module):
+    """
+    Freezes module's parameters.
+    """
+    
+    for parameter in module.parameters():
+        parameter.requires_grad = False
+        
+def get_freezed_parameters(module):
+    """
+    Returns names of freezed parameters of the given module.
+    """
+    
+    freezed_parameters = []
+    for name, parameter in module.named_parameters():
+        if not parameter.requires_grad:
+            freezed_parameters.append(name)
+            
+    return freezed_parameters
 
 class MeanPooling(nn.Module):
     def __init__(self):
