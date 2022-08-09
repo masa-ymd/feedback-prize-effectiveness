@@ -376,9 +376,9 @@ class FeedBackModel(nn.Module):
         return ModelOutput(
             logits=logits,
             loss=loss,
-            last_hidden_state=out.last_hidden_state,
-            attentions=out.attentions,
-            hidden_states=out.hidden_states
+            #last_hidden_state=out.last_hidden_state,
+            #attentions=out.attentions,
+            #hidden_states=out.hidden_states
         )
 
 def criterion(res):
@@ -388,8 +388,8 @@ def criterion(res):
     print(outputs)
     print(labels)
     loss = nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs).to("cuda:0"),
-        torch.from_numpy(labels).long().to("cuda:0"))
+        torch.from_numpy(outputs),
+        torch.from_numpy(labels).long())
     return {"loss": loss}
     #return {"loss": nn.CrossEntropyLoss()(
     #    torch.from_numpy(outputs).to("cuda:0"),
