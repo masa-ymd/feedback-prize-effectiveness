@@ -345,7 +345,7 @@ class FeedBackModel(nn.Module):
         #self.drop3 = nn.Dropout(p=0.3)
         #self.drop4 = nn.Dropout(p=0.4)
         #self.drop5 = nn.Dropout(p=0.5)
-        #self.pooler = MeanPooling()
+        self.pooler = MeanPooling()
         self.fc = nn.Linear(self.config.hidden_size, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
