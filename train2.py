@@ -63,7 +63,7 @@ tqdm.pandas()
 
 torch.backends.cudnn.benchmark = True
 
-jst = timezone(timedelta(hours=+9), 'JST')
+jst = dt.timezone(timedelta(hours=+9), 'JST')
 tdatetime = dt.now(jst)
 tstr = tdatetime.strftime('%Y-%m-%d_%H:%M:%S')
 
