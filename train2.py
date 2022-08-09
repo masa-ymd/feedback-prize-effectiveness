@@ -6,7 +6,7 @@ import random
 import string
 import joblib
 from types import SimpleNamespace
-from datetime import datetime as dt
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 # For data manipulation
@@ -63,8 +63,8 @@ tqdm.pandas()
 
 torch.backends.cudnn.benchmark = True
 
-jst = dt.timezone(timedelta(hours=+9), 'JST')
-tdatetime = dt.now(jst)
+jst = timezone(timedelta(hours=+9), 'JST')
+tdatetime = datetime.now(jst)
 tstr = tdatetime.strftime('%Y-%m-%d_%H:%M:%S')
 
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
