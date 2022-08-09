@@ -34,6 +34,8 @@ from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold
 from transformers import AutoTokenizer, AutoModel, AutoConfig, AdamW
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments, Trainer
+from transformers.modeling_outputs import ModelOutput
+from transformers import EarlyStoppingCallback
 
 # For colored terminal text
 from colorama import Fore, Back, Style
@@ -83,7 +85,7 @@ config.input_path = Path('../input/feedback-prize-effectiveness')
 config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
-config.epochs = 4
+config.epochs = 1 #4
 config.batch_size = 36
 config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
@@ -158,9 +160,6 @@ def add_special_tokens(x):
     else:
         return '[UNK]'
 
-def replace_target_to_special_token(x):
-    return x.essay_text.replace(x.discourse_text, '[AFTER_DISCOURSE]')
-
 def short_discourse_text(x):
     t = tokenizer(x.discourse_text).input_ids
     if len(t) > 400:
@@ -187,8 +186,6 @@ print("=== get essay ===")
 df['essay_text'] = df['essay_id'].progress_apply(get_essay)
 print("=== add_special_tokens ===")
 df['discourse_type_category'] = df.progress_apply(add_special_tokens, axis=1)
-#print("=== replace_target_to_special_token ===")
-#df['essay_text'] = df.progress_apply(replace_target_to_special_token, axis=1)
 print("=== resolve_encodings_and_normalize(discourse_text) ===")
 df['discourse_text'] = df['discourse_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
 print("=== resolve_encodings_and_normalize(essay_text) ===")
@@ -371,17 +368,26 @@ class FeedBackModel(nn.Module):
         out = self.drop3(out)
         out = self.drop4(out)
         out = self.drop5(out)
-        outputs = self.fc(out)
-        return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
-
-    def get_parameters(self):
-        return filter(lambda parameter: parameter.requires_grad, self.model.parameters())
+        logits = self.fc(out)
+        loss = nn.CrossEntropyLoss()(logits, labels)
+        #return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
+        return ModelOutput(
+            logits=logits,
+            loss=loss,
+            last_hidden_state=out.last_hidden_state,
+            attentions=out.attentions,
+            hidden_states=out.hidden_states
+        )
 
 def criterion(res):
     outputs, labels = res
-    return {"loss": nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs).to("cuda:0"),
-        torch.from_numpy(labels).long().to("cuda:0"))}
+    loss = nn.CrossEntropyLoss()(
+        torch.from_numpy(outputs),
+        torch.from_numpy(labels).long())
+    return {"cross_entropy_loss": loss}    
+    #return {"loss": nn.CrossEntropyLoss()(
+    #    torch.from_numpy(outputs).to("cuda:0"),
+    #    torch.from_numpy(labels).long().to("cuda:0"))}
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
@@ -405,7 +411,7 @@ for fold in range(0, config.n_folds):
     print(f'Num steps: {num_steps}, eval steps: {eval_steps}')
 
     args = TrainingArguments(
-        output_dir=config.output_path,
+        output_dir=f"{config.output_path}/fold{fold}",
         learning_rate=config.lr,
         warmup_ratio=config.warm_up_ratio,
         lr_scheduler_type='cosine',
@@ -420,6 +426,8 @@ for fold in range(0, config.n_folds):
         eval_steps=eval_steps, 
         save_strategy='steps',
         save_steps=eval_steps,
+
+        metric_for_best_model='cross_entropy_loss',
         
         load_best_model_at_end=True,
         gradient_accumulation_steps=config.gradient_accumulation_steps,
@@ -436,15 +444,16 @@ for fold in range(0, config.n_folds):
         eval_dataset=valid_dataset,
         tokenizer=tokenizer,
         data_collator=collate_fn,
-        compute_metrics=criterion
+        compute_metrics=criterion,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
     )
 
     trainer.train()
     
-    trainer.save_model(config.output_path / f'fold_{fold_num}')
+    trainer.save_model(f"{config.output_path}/fold{fold}/final")
     
     run.finish()
     
-    del model, train_loader, valid_loader
+    del model
     _ = gc.collect()
     print()
