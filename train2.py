@@ -362,14 +362,14 @@ class FeedBackModel(nn.Module):
     ):        
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
-        out = self.pooler(out.last_hidden_state, attention_mask)
+        pool_out = self.pooler(out.last_hidden_state, attention_mask)
         #out = self.drop(out)
         #out = self.drop1(out)
         #out = self.drop2(out)
         #out = self.drop3(out)
         #out = self.drop4(out)
         #out = self.drop5(out)
-        logits = sum([self.fc(dropout(out)) for dropout in self.dropouts]) / config.num_msd
+        logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         #logits = self.fc(out)
         loss = nn.CrossEntropyLoss()(logits, labels)
         #return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
