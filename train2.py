@@ -82,7 +82,7 @@ config.model_name = 'microsoft/deberta-v3-base'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
-config.n_folds = 5
+config.n_folds = 2 #5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 1 #4
