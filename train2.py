@@ -64,7 +64,7 @@ tqdm.pandas()
 torch.backends.cudnn.benchmark = True
 
 tdatetime = dt.now()
-tstr = tdatetime.strftime('%Y%m%d%H%M%S')
+tstr = tdatetime.strftime('%Y-%m-%d_%H:%M:%S')
 
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
 TRAIN_DIR = f"{BASE_PATH}/train"
@@ -93,7 +93,8 @@ config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
 config.eval_per_epoch = 2
-config.group = f'{tstr}-Baseline'
+config.group = f'{tstr}-exp'
+config.num_msd = 6
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
 tokenizer.model_max_length = config.max_len
@@ -246,18 +247,6 @@ def set_embedding_parameters_bits(embeddings_path, optim_bits=32):
                 getattr(embeddings_path, attr_name), 'weight', {'optim_bits': optim_bits}
             )
 
-class MeanPooling(nn.Module):
-    def __init__(self):
-        super(MeanPooling, self).__init__()
-        
-    def forward(self, last_hidden_state, attention_mask):
-        input_mask_expanded = attention_mask.unsqueeze(-1).expand(last_hidden_state.size()).float()
-        sum_embeddings = torch.sum(last_hidden_state * input_mask_expanded, 1)
-        sum_mask = input_mask_expanded.sum(1)
-        sum_mask = torch.clamp(sum_mask, min=1e-9)
-        mean_embeddings = sum_embeddings / sum_mask
-        return mean_embeddings
-
 class FeedBackDataset(Dataset):
     def __init__(self, df, tokenizer, max_length):
         self.df = df
@@ -275,7 +264,6 @@ class FeedBackDataset(Dataset):
         discourse = self.discourse[index]
         essay = self.essay[index]
         discourse_type_category = self.discourse_type_category[index]
-        #text = discourse_type_category + discourse + '[BEFORE_DISCOURSE]' + essay
         text = discourse_type_category + discourse + '[SEP]' + essay
         inputs = self.tokenizer.encode_plus(
                         text,
@@ -326,6 +314,18 @@ class Collate:
 collate_fn = DataCollatorWithPadding(tokenizer=tokenizer)
 #collate_fn = Collate(CONFIG['tokenizer'])
 
+class MeanPooling(nn.Module):
+    def __init__(self):
+        super(MeanPooling, self).__init__()
+        
+    def forward(self, last_hidden_state, attention_mask):
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(last_hidden_state.size()).float()
+        sum_embeddings = torch.sum(last_hidden_state * input_mask_expanded, 1)
+        sum_mask = input_mask_expanded.sum(1)
+        sum_mask = torch.clamp(sum_mask, min=1e-9)
+        mean_embeddings = sum_embeddings / sum_mask
+        return mean_embeddings
+
 class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
@@ -339,14 +339,15 @@ class FeedBackModel(nn.Module):
         (self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
-        self.drop = nn.Dropout(p=0.2)
-        self.drop1 = nn.Dropout(p=0.1)
-        self.drop2 = nn.Dropout(p=0.2)
-        self.drop3 = nn.Dropout(p=0.3)
-        self.drop4 = nn.Dropout(p=0.4)
-        self.drop5 = nn.Dropout(p=0.5)
-        self.pooler = MeanPooling()
+        #self.drop = nn.Dropout(p=0.2)
+        #self.drop1 = nn.Dropout(p=0.1)
+        #self.drop2 = nn.Dropout(p=0.2)
+        #self.drop3 = nn.Dropout(p=0.3)
+        #self.drop4 = nn.Dropout(p=0.4)
+        #self.drop5 = nn.Dropout(p=0.5)
+        #self.pooler = MeanPooling()
         self.fc = nn.Linear(self.config.hidden_size, 3)
+        self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
     def forward(self,
         input_ids=None,
@@ -362,13 +363,14 @@ class FeedBackModel(nn.Module):
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
         out = self.pooler(out.last_hidden_state, attention_mask)
-        out = self.drop(out)
-        out = self.drop1(out)
-        out = self.drop2(out)
-        out = self.drop3(out)
-        out = self.drop4(out)
-        out = self.drop5(out)
-        logits = self.fc(out)
+        #out = self.drop(out)
+        #out = self.drop1(out)
+        #out = self.drop2(out)
+        #out = self.drop3(out)
+        #out = self.drop4(out)
+        #out = self.drop5(out)
+        logits = sum([self.fc(dropout(out)) for dropout in self.dropouts]) / config.num_msd
+        #logits = self.fc(out)
         loss = nn.CrossEntropyLoss()(logits, labels)
         #return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
         return ModelOutput(
