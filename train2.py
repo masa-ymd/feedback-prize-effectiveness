@@ -388,8 +388,8 @@ def criterion(res):
     print(outputs)
     print(labels)
     loss = nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs),
-        torch.from_numpy(labels).long())
+        torch.from_numpy(outputs).to("cuda:0"),
+        torch.from_numpy(labels).long().to("cuda:0"))
     return {"loss": loss}
     #return {"loss": nn.CrossEntropyLoss()(
     #    torch.from_numpy(outputs).to("cuda:0"),
