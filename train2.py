@@ -383,6 +383,10 @@ class FeedBackModel(nn.Module):
 
 def criterion(res):
     outputs, labels = res
+    print()
+    print("hogehoge")
+    print(outputs)
+    print(labels)
     loss = nn.CrossEntropyLoss()(
         torch.from_numpy(outputs).to("cuda:0"),
         torch.from_numpy(labels).long().to("cuda:0"))
