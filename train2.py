@@ -83,10 +83,10 @@ config.model_name = 'microsoft/deberta-v3-base'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
-config.n_folds = 2 #5
+config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
-config.epochs = 2 #4
+config.epochs = 4
 config.batch_size = 36
 config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
@@ -234,20 +234,6 @@ def get_freezed_parameters(module):
             
     return freezed_parameters
 
-# 8-bits optimizer
-def set_embedding_parameters_bits(embeddings_path, optim_bits=32):
-    """
-    https://github.com/huggingface/transformers/issues/14819#issuecomment-1003427930
-    """
-    embedding_types = ("word", "position", "token_type")
-    for embedding_type in embedding_types:
-        attr_name = f"{embedding_type}_embeddings"
-        
-        if hasattr(embeddings_path, attr_name): 
-            bnb.optim.GlobalOptimManager.get_instance().register_module_override(
-                getattr(embeddings_path, attr_name), 'weight', {'optim_bits': optim_bits}
-            )
-
 class FeedBackDataset(Dataset):
     def __init__(self, df, tokenizer, max_length):
         self.df = df
@@ -340,12 +326,6 @@ class FeedBackModel(nn.Module):
         (self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
-        #self.drop = nn.Dropout(p=0.2)
-        #self.drop1 = nn.Dropout(p=0.1)
-        #self.drop2 = nn.Dropout(p=0.2)
-        #self.drop3 = nn.Dropout(p=0.3)
-        #self.drop4 = nn.Dropout(p=0.4)
-        #self.drop5 = nn.Dropout(p=0.5)
         self.pooler = MeanPooling()
         self.fc = nn.Linear(self.config.hidden_size, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
@@ -364,16 +344,8 @@ class FeedBackModel(nn.Module):
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
         pool_out = self.pooler(out.last_hidden_state, attention_mask)
-        #out = self.drop(out)
-        #out = self.drop1(out)
-        #out = self.drop2(out)
-        #out = self.drop3(out)
-        #out = self.drop4(out)
-        #out = self.drop5(out)
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        #logits = self.fc(out)
         loss = nn.CrossEntropyLoss()(logits, labels)
-        #return {"loss": nn.CrossEntropyLoss()(outputs, labels), "outputs": outputs}
         return ModelOutput(
             logits=logits,
             loss=loss,
@@ -384,17 +356,10 @@ class FeedBackModel(nn.Module):
 
 def criterion(res):
     outputs, labels = res
-    #print()
-    #print("hogehoge")
-    #print(outputs)
-    #print(labels)
     loss = nn.CrossEntropyLoss()(
         torch.from_numpy(outputs).to("cuda:0"),
         torch.from_numpy(labels).long().to("cuda:0"))
     return {"loss": loss}
-    #return {"loss": nn.CrossEntropyLoss()(
-    #    torch.from_numpy(outputs).to("cuda:0"),
-    #    torch.from_numpy(labels).long().to("cuda:0"))}
 
 for fold in range(0, config.n_folds):
     print(f"{y_}====== Fold: {fold} ======{sr_}")
@@ -435,7 +400,7 @@ for fold in range(0, config.n_folds):
         save_strategy='steps',
         save_steps=eval_steps,
 
-        #metric_for_best_model='cross_entropy_loss',
+        #metric_for_best_model='loss',
         
         load_best_model_at_end=True,
         gradient_accumulation_steps=config.gradient_accumulation_steps,
