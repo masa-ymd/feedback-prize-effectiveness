@@ -361,6 +361,7 @@ class FeedBackModel(nn.Module):
         #cnn_out = F.relu(self.cnn1(out.last_hidden_state.permute(0, 2, 1)))
         #cnn_out = self.cnn2(cnn_out)
         #lstm_out, _ = self.lstm(out.last_hidden_state, None)
+        #cat_out = torch.cat([out["hidden_states"][-1*i][:,0] for i in range(1, 4+1)], dim=1)  # concatenate
         pool_out = self.pooler(out.last_hidden_state, attention_mask)
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         
