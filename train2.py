@@ -339,6 +339,9 @@ class FeedBackModel(nn.Module):
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.pooler = MeanPooling()
+        #self.cnn1 = nn.Conv1d(self.config.hidden_size, 256, kernel_size=2, padding=1)
+        #self.cnn2 = nn.Conv1d(256, 1, kernel_size=2, padding=1)
+        #self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(self.config.hidden_size, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
@@ -355,6 +358,9 @@ class FeedBackModel(nn.Module):
     ):        
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
+        #cnn_out = F.relu(self.cnn1(out.last_hidden_state.permute(0, 2, 1)))
+        #cnn_out = self.cnn2(cnn_out)
+        #lstm_out, _ = self.lstm(out.last_hidden_state, None)
         pool_out = self.pooler(out.last_hidden_state, attention_mask)
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         
