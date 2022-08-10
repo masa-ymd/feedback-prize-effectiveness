@@ -88,14 +88,25 @@ config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
 config.batch_size = 36
-config.gradient_accumulation_steps = 1
+config.gradient_accumulation_steps = 2
 config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
-config.eval_per_epoch = 2
+config.eval_per_epoch = 3
 config.group = f'{tstr}-exp'
 config.num_msd = 6
+
+def seed_everything(seed: int):    
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+
+seed_everything(config.seed)
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
 tokenizer.model_max_length = config.max_len
@@ -399,7 +410,7 @@ for fold in range(0, config.n_folds):
         weight_decay=config.weight_decay,
         report_to="wandb",
 
-        logging_steps=50,
+        logging_steps=10,
         evaluation_strategy='steps',
         eval_steps=eval_steps, 
         save_strategy='steps',
