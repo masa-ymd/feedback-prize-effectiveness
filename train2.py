@@ -79,7 +79,7 @@ if not os.path.exists(MODEL_PATH):
 config = SimpleNamespace()
 
 config.seed = 123
-config.model_name = 'microsoft/deberta-v3-base'
+config.model_name = 'microsoft/deberta-v3-large'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
@@ -234,9 +234,10 @@ class FeedBackDataset(Dataset):
         text = discourse_type_category + discourse + '[SEP]' + essay
         inputs = self.tokenizer.encode_plus(
                         text,
+                        max_length=self.max_len,
                         truncation=True,
-                        add_special_tokens=True,
-                        max_length=self.max_len
+                        padding='max_length',
+                        add_special_tokens=True
                     )
         
         return {
