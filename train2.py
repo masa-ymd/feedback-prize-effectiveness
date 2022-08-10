@@ -345,7 +345,11 @@ class FeedBackModel(nn.Module):
                          output_hidden_states=output_hidden_states)
         pool_out = self.pooler(out.last_hidden_state, attention_mask)
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        loss = nn.CrossEntropyLoss()(logits, labels)
+        
+        loss = None
+        if labels is not None:
+            loss = nn.CrossEntropyLoss()(logits, labels)
+        
         return ModelOutput(
             logits=logits,
             loss=loss,
