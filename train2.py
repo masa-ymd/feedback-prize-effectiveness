@@ -385,6 +385,12 @@ def criterion(res):
     return {"loss": loss}
 
 for fold in range(0, config.n_folds):
+    
+    ## TODO add parameter
+    if fold < 2:
+        print(f"==== skip fold {fold} ====")
+        continue
+
     print(f"{y_}====== Fold: {fold} ======{sr_}")
     run = wandb.init(project='FeedBack', 
                      config=config,
