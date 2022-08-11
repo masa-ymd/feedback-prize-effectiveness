@@ -402,7 +402,7 @@ def criterion(res):
 
 for fold in range(0, config.n_folds):
     
-    if args.f in not None:
+    if args.f is not None:
         if fold < 2:
             print(f"{y_}====== skip fold {fold} ======{sr_}")
             continue
