@@ -466,7 +466,10 @@ for fold in range(0, config.n_folds):
         callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
     )
 
-    trainer.train()
+    if args.c is not None:
+        trainer.train(f"{MODEL_PATH}/fold{args.f}/{args.c}")
+    else:
+        trainer.train()
     
     trainer.save_model(f"{config.output_path}/fold{fold}/final")
     
