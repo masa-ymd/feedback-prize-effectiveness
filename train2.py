@@ -219,7 +219,7 @@ print(df.head())
 #for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discourse_effectiveness, df.essay_id)):
 #    df.loc[test_idxs, ['kfold']] = fold_num
 
-gkf = GroupKFold(n_splits=CONFIG['n_fold'])
+gkf = GroupKFold(n_splits=config.n_folds)
 
 for fold, ( _, val_) in enumerate(gkf.split(X=df, groups=df.essay_id)):
     df.loc[val_ , "kfold"] = int(fold)
