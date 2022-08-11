@@ -214,10 +214,20 @@ df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
 print(df.head())
 #print(df.total_len.describe())
 
-cv = StratifiedKFold(n_splits=config.n_folds, shuffle=True, random_state=config.seed)
-df['kfold'] = -1
-for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discourse_effectiveness, df.essay_id)):
-    df.loc[test_idxs, ['kfold']] = fold_num
+#cv = StratifiedKFold(n_splits=config.n_folds, shuffle=True, random_state=config.seed)
+#df['kfold'] = -1
+#for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discourse_effectiveness, df.essay_id)):
+#    df.loc[test_idxs, ['kfold']] = fold_num
+
+gkf = GroupKFold(n_splits=CONFIG['n_fold'])
+
+for fold, ( _, val_) in enumerate(gkf.split(X=df, groups=df.essay_id)):
+    df.loc[val_ , "kfold"] = int(fold)
+    
+df["kfold"] = df["kfold"].astype(int)
+print(df.head())
+
+print(df.groupby('kfold')['discourse_effectiveness'].value_counts())
 
 encoder = LabelEncoder()
 df['discourse_effectiveness'] = encoder.fit_transform(df['discourse_effectiveness'])
@@ -387,9 +397,9 @@ def criterion(res):
 for fold in range(0, config.n_folds):
     
     ## TODO add parameter
-    if fold < 2:
-        print(f"==== skip fold {fold} ====")
-        continue
+    #if fold < 2:
+    #    print(f"==== skip fold {fold} ====")
+    #    continue
 
     print(f"{y_}====== Fold: {fold} ======{sr_}")
     run = wandb.init(project='FeedBack', 
