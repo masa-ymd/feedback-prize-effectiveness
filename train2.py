@@ -8,6 +8,7 @@ import joblib
 from types import SimpleNamespace
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+import argparse
 
 # For data manipulation
 import numpy as np
@@ -28,7 +29,7 @@ from collections import defaultdict
 
 # Sklearn Imports
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold
+from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold, StratifiedGroupKFold
 
 # For Transformer Models
 from transformers import AutoTokenizer, AutoModel, AutoConfig, AdamW
@@ -54,6 +55,12 @@ import wandb
 
 from timm.scheduler import CosineLRScheduler
 
+parser = argparse.ArgumentParser(description='train dnn')
+parser.add_argument('-f', help='再開するfold', type=int)
+parser.add_argument('-t', help='再開する実行時間')
+parser.add_argument('-c', help='再開するチェックポイント')
+args = parser.parse_args()
+
 wandb.login()
 
 pd.set_option("max_colwidth", None)
@@ -66,6 +73,8 @@ torch.backends.cudnn.benchmark = True
 jst = timezone(timedelta(hours=+9), 'JST')
 tdatetime = datetime.now(jst)
 tstr = tdatetime.strftime('%Y-%m-%d_%H:%M:%S')
+if args.t is not None:
+    tstr = args.t
 
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
 TRAIN_DIR = f"{BASE_PATH}/train"
@@ -214,19 +223,16 @@ df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
 print(df.head())
 #print(df.total_len.describe())
 
-#cv = StratifiedKFold(n_splits=config.n_folds, shuffle=True, random_state=config.seed)
-#df['kfold'] = -1
-#for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discourse_effectiveness, df.essay_id)):
-#    df.loc[test_idxs, ['kfold']] = fold_num
+cv = StratifiedGroupKFold(n_splits=config.n_folds, shuffle=True, random_state=config.seed)
+df['kfold'] = -1
+for fold_num, (train_idxs, test_idxs) in enumerate(cv.split(df.index, df.discourse_effectiveness, df.essay_id)):
+    df.loc[test_idxs, ['kfold']] = fold_num
 
-gkf = GroupKFold(n_splits=config.n_folds)
-
-for fold, ( _, val_) in enumerate(gkf.split(X=df, groups=df.essay_id)):
-    df.loc[val_ , "kfold"] = int(fold)
+#gkf = GroupKFold(n_splits=config.n_folds)
+#for fold, ( _, val_) in enumerate(gkf.split(X=df, groups=df.essay_id)):
+#    df.loc[val_ , "kfold"] = int(fold)
     
-df["kfold"] = df["kfold"].astype(int)
-print(df.head())
-
+#df["kfold"] = df["kfold"].astype(int)
 print(df.groupby('kfold')['discourse_effectiveness'].value_counts())
 
 encoder = LabelEncoder()
@@ -396,10 +402,10 @@ def criterion(res):
 
 for fold in range(0, config.n_folds):
     
-    ## TODO add parameter
-    #if fold < 2:
-    #    print(f"==== skip fold {fold} ====")
-    #    continue
+    if args.f in not None:
+        if fold < 2:
+            print(f"{y_}====== skip fold {fold} ======{sr_}")
+            continue
 
     print(f"{y_}====== Fold: {fold} ======{sr_}")
     run = wandb.init(project='FeedBack', 
