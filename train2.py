@@ -358,8 +358,8 @@ class FeedBackModel(nn.Module):
         #self.pooler = MeanPooling()
         #self.cnn1 = nn.Conv1d(self.config.hidden_size, 256, kernel_size=2, padding=1)
         #self.cnn2 = nn.Conv1d(256, 1, kernel_size=2, padding=1)
-        self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=False)
-        self.fc = nn.Linear(self.config.hidden_size, 3)
+        self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
+        self.fc = nn.Linear(self.config.hidden_size * 2, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
     def forward(self,
