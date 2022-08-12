@@ -59,7 +59,7 @@ parser = argparse.ArgumentParser(description='train dnn')
 parser.add_argument('-f', help='再開するfold', type=int)
 parser.add_argument('-t', help='再開する実行時間')
 parser.add_argument('-c', help='再開するチェックポイント')
-args = parser.parse_args()
+cmdargs = parser.parse_args()
 
 wandb.login()
 
@@ -73,8 +73,8 @@ torch.backends.cudnn.benchmark = True
 jst = timezone(timedelta(hours=+9), 'JST')
 tdatetime = datetime.now(jst)
 tstr = tdatetime.strftime('%Y-%m-%d_%H:%M:%S')
-if args.t is not None:
-    tstr = args.t
+if cmdargs.t is not None:
+    tstr = cmdargs.t
 
 BASE_PATH = "/root/kaggle/feedback-prize-effectiveness/data"
 TRAIN_DIR = f"{BASE_PATH}/train"
@@ -402,7 +402,7 @@ def criterion(res):
 
 for fold in range(0, config.n_folds):
     
-    if args.f is not None:
+    if cmdargs.f is not None:
         if fold < 2:
             print(f"{y_}====== skip fold {fold} ======{sr_}")
             continue
@@ -466,8 +466,8 @@ for fold in range(0, config.n_folds):
         callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
     )
 
-    if args.c is not None:
-        trainer.train(f"{MODEL_PATH}/fold{args.f}/{args.c}")
+    if cmdargs.c is not None:
+        trainer.train(f"{MODEL_PATH}/fold{cmdargs.f}/{cmdargs.c}")
     else:
         trainer.train()
     
