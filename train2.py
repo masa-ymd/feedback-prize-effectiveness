@@ -354,10 +354,10 @@ class FeedBackModel(nn.Module):
         (self.model).gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
-        self.pooler = MeanPooling()
+        #self.pooler = MeanPooling()
         #self.cnn1 = nn.Conv1d(self.config.hidden_size, 256, kernel_size=2, padding=1)
         #self.cnn2 = nn.Conv1d(256, 1, kernel_size=2, padding=1)
-        #self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(self.config.hidden_size, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
@@ -376,10 +376,10 @@ class FeedBackModel(nn.Module):
                          output_hidden_states=output_hidden_states)
         #cnn_out = F.relu(self.cnn1(out.last_hidden_state.permute(0, 2, 1)))
         #cnn_out = self.cnn2(cnn_out)
-        #lstm_out, _ = self.lstm(out.last_hidden_state, None)
+        lstm_out, _ = self.lstm(out.last_hidden_state, None)
         #cat_out = torch.cat([out["hidden_states"][-1*i][:,0] for i in range(1, 4+1)], dim=1)  # concatenate
-        pool_out = self.pooler(out.last_hidden_state, attention_mask)
-        logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
+        #pool_out = self.pooler(out.last_hidden_state, attention_mask)
+        logits = sum([self.fc(dropout(lstm_out)) for dropout in self.dropouts]) / config.num_msd
         
         loss = None
         if labels is not None:
