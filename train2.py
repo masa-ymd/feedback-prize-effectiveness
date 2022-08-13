@@ -388,7 +388,7 @@ class FeedBackModel(nn.Module):
         #print(f"cnn_out2: {self.cnn2(cnn_out).size()}")
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        #print(labels.size())
+        print(out)
         
         loss = None
         if labels is not None:
