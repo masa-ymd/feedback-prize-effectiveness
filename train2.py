@@ -390,7 +390,7 @@ class FeedBackModel(nn.Module):
         loss = None
         if labels is not None:
             loss = nn.CrossEntropyLoss()(logits, labels)
-        
+            
     return ModelOutput(
             logits=logits,
             loss=loss,
