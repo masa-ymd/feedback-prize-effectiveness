@@ -391,7 +391,7 @@ class FeedBackModel(nn.Module):
         if labels is not None:
             loss = nn.CrossEntropyLoss()(logits, labels)
             
-    return ModelOutput(
+        return ModelOutput(
             logits=logits,
             loss=loss,
             #last_hidden_state=out.last_hidden_state,
