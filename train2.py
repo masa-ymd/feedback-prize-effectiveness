@@ -398,7 +398,6 @@ class FeedBackModel(nn.Module):
         return TokenClassifierOutput(
             logits=logits,
             loss=loss,
-            last_hidden_state=out['last_hidden_state'],
             attentions=out['attentions'],
             hidden_states=out['hidden_states']
         )
