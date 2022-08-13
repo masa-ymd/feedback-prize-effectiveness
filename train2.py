@@ -33,7 +33,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold, StratifiedGroupKFold
 
 # For Transformer Models
-from transformers import AutoTokenizer, AutoModel, AutoConfig, AdamW
+from transformers import AutoTokenizer, AutoModel, AutoConfig, AdamW, AutoModelForTokenClassification
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments, Trainer
 from transformers.modeling_outputs import ModelOutput, TokenClassifierOutput
