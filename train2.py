@@ -36,7 +36,7 @@ from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold, Stratifi
 from transformers import AutoTokenizer, AutoModel, AutoConfig, AdamW
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments, Trainer
-from transformers.modeling_outputs import ModelOutput
+from transformers.modeling_outputs import ModelOutput, TokenClassifierOutput
 from transformers import EarlyStoppingCallback
 
 # For colored terminal text
@@ -394,12 +394,12 @@ class FeedBackModel(nn.Module):
         if labels is not None:
             loss = nn.CrossEntropyLoss()(logits, labels)
             
-        return ModelOutput(
+        return TokenClassifierOutput(
             logits=logits,
             loss=loss,
-            #last_hidden_state=out.last_hidden_state,
-            #attentions=out.attentions,
-            #hidden_states=out.hidden_states
+            last_hidden_state=out.last_hidden_state,
+            attentions=out.attentions,
+            hidden_states=out.hidden_states
         )
 
 def criterion(res):
