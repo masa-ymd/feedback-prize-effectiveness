@@ -345,7 +345,8 @@ class MeanPooling(nn.Module):
 class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
-        self.model = AutoModel.from_pretrained(model_name)
+        #self.model = AutoModel.from_pretrained(model_name)
+        self.model = AutoModelForTokenClassification.from_pretrained(model_name)
         # freezing embeddings and first 6 layers of encoder
         freeze(self.model.embeddings)
         freeze(self.model.encoder.layer[:6])
