@@ -399,7 +399,7 @@ class FeedBackModel(nn.Module):
             loss=loss,
             last_hidden_state=out['last_hidden_state'],
             attentions=out['attentions'],
-            hidden_states=out.['hidden_states']
+            hidden_states=out['hidden_states']
         )
 
 def criterion(res):
