@@ -376,6 +376,7 @@ class FeedBackModel(nn.Module):
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
         cnn_out = F.relu(self.cnn1(out.last_hidden_state.permute(0, 2, 1)))
+        print(f"cnn_out: {cnn_out.size()}")
         #cnn_out = self.cnn2(cnn_out)
         #lstm_out, _ = self.lstm(out.last_hidden_state, None)
         #sequence_out = lstm_out[:, -1, :]
@@ -383,13 +384,14 @@ class FeedBackModel(nn.Module):
         #cat_out = torch.cat([out["hidden_states"][-1*i][:,0] for i in range(1, 4+1)], dim=1)  # concatenate
         #pool_out = self.pooler(out.last_hidden_state, attention_mask)
         #logits = sum([self.fc(dropout(sequence_out)) for dropout in self.dropouts]) / config.num_msd
+        print(f"cnn_out2: {self.cnn2(cnn_out).size()}")
         logits = sum([self.cnn2(dropout(cnn_out)) for dropout in self.dropouts]) / config.num_msd
         
         loss = None
         if labels is not None:
             loss = nn.CrossEntropyLoss()(logits, labels)
         
-        return ModelOutput(
+    return ModelOutput(
             logits=logits,
             loss=loss,
             #last_hidden_state=out.last_hidden_state,
