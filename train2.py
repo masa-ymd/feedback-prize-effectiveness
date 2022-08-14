@@ -352,7 +352,7 @@ class FeedBackModel(nn.Module):
         #freezed_parameters = get_freezed_parameters(self.model)
         #print(f"Freezed parameters: {freezed_parameters}")
         
-        self.config = AutoConfig.from_pretrained(model_name, num_labels=3)
+        self.config = AutoConfig.from_pretrained(model_name, num_labels=3, output_attentions=True, output_hidden_states=True)
         self.model = AutoModelForTokenClassification.from_pretrained(model_name, config=self.config)
         self.model.resize_token_embeddings(len(tokenizer))
         self.model.gradient_checkpointing_enable()
