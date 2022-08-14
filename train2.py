@@ -97,7 +97,7 @@ config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
-config.batch_size = 4
+config.batch_size = 8
 config.gradient_accumulation_steps = 4
 config.warm_up_ratio = 0.1
 config.max_len = 512
@@ -450,7 +450,7 @@ for fold in range(0, config.n_folds):
         lr_scheduler_type='cosine',
         fp16=True,
         per_device_train_batch_size=config.batch_size,
-        per_device_eval_batch_size=config.batch_size * 2,
+        per_device_eval_batch_size=config.batch_size,
         num_train_epochs=config.epochs,
         weight_decay=config.weight_decay,
         report_to="wandb",
