@@ -97,7 +97,7 @@ config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
-config.batch_size = 36
+config.batch_size = 16
 config.gradient_accumulation_steps = 2
 config.warm_up_ratio = 0.1
 config.max_len = 512
@@ -380,8 +380,8 @@ class FeedBackModel(nn.Module):
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
         #cnn_out = F.relu(self.cnn1(out.last_hidden_state.permute(0, 2, 1)))
-        print(f"out: {out}")
-        print(f"type of out: {type(out)}")
+        #print(f"out: {out}")
+        #print(f"type of out: {type(out)}")
         #cnn_out = self.cnn2(cnn_out)
         #lstm_out, _ = self.lstm(out.last_hidden_state, None)
         #sequence_out = lstm_out[:, -1, :]
