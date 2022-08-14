@@ -346,16 +346,18 @@ class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
         #self.model = AutoModel.from_pretrained(model_name)
-        self.model = AutoModelForTokenClassification.from_pretrained(model_name)
         # freezing embeddings and first 6 layers of encoder
         #freeze(self.model.embeddings)
         #freeze(self.model.encoder.layer[:6])
         #freezed_parameters = get_freezed_parameters(self.model)
         #print(f"Freezed parameters: {freezed_parameters}")
-        self.model.resize_token_embeddings(len(tokenizer))
-        (self.model).gradient_checkpointing_enable()
-        print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
+        
         self.config = AutoConfig.from_pretrained(model_name, num_labels=3)
+        self.model = AutoModelForTokenClassification.from_pretrained(model_name, config=self.config)
+        self.model.resize_token_embeddings(len(tokenizer))
+        self.model.gradient_checkpointing_enable()
+        print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
+
         self.pooler = MeanPooling()
         #self.cnn1 = nn.Conv1d(self.config.hidden_size, 256, kernel_size=2, padding=1)
         #self.cnn2 = nn.Conv1d(256, 3, kernel_size=2, padding=1)
@@ -391,6 +393,7 @@ class FeedBackModel(nn.Module):
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
         #logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         logits = sum([dropout(pool_out) for dropout in self.dropouts]) / config.num_msd
+        logits = logits.view(-1, 3)
         print(f"logits: {logits.size()}")
         print(f"labels: {labels.size()}")
         
