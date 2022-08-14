@@ -393,7 +393,7 @@ class FeedBackModel(nn.Module):
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
         #logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         logits = sum([dropout(pool_out) for dropout in self.dropouts]) / config.num_msd
-        logits = logits.view(-1, 3)
+        #logits = logits.view(-1, 3)
         print(f"logits: {logits.size()}")
         print(f"labels: {labels.size()}")
         
