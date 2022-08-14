@@ -380,7 +380,8 @@ class FeedBackModel(nn.Module):
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
         #cnn_out = F.relu(self.cnn1(out.last_hidden_state.permute(0, 2, 1)))
-        #print(f"cnn_out: {cnn_out.size()}")
+        print(f"out: {out}")
+        print(f"type of out: {type(out)}")
         #cnn_out = self.cnn2(cnn_out)
         #lstm_out, _ = self.lstm(out.last_hidden_state, None)
         #sequence_out = lstm_out[:, -1, :]
@@ -394,8 +395,8 @@ class FeedBackModel(nn.Module):
         #logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         logits = sum([dropout(pool_out) for dropout in self.dropouts]) / config.num_msd
         #logits = logits.view(-1, 3)
-        print(f"logits: {logits.size()}")
-        print(f"labels: {labels.size()}")
+        #print(f"logits: {logits.size()}")
+        #print(f"labels: {labels.size()}")
         
         loss = None
         if labels is not None:
