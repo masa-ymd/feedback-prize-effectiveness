@@ -257,7 +257,7 @@ class FeedBackDataset(Dataset):
     
     def __getitem__(self, index):
         discourse = self.discourse[index]
-        essay = self.essay[index]
+        #essay = self.essay[index]
         discourse_type_category = self.discourse_type_category[index]
         #text = discourse_type_category + discourse + '[SEP]' + essay
         text = discourse_type_category + discourse
