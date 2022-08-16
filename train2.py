@@ -100,7 +100,7 @@ config.epochs = 4
 config.batch_size = 2
 config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
-config.max_len = 256
+config.max_len = 128
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
 config.eval_per_epoch = 900
@@ -185,8 +185,10 @@ def add_special_tokens(x):
 
 def short_discourse_text(x):
     t = tokenizer(x.discourse_text).input_ids
-    if len(t) > 253:
+    #if len(t) > 253:
+    if len(t) > 125:
         return tokenizer.decode(t[:127] + t[-126:], skip_special_tokens=True)
+        return tokenizer.decode(t[:64] + t[-61:], skip_special_tokens=True)
     else:
         return x.discourse_text
 
