@@ -412,9 +412,19 @@ class FeedBackModel(nn.Module):
 
 def criterion(res):
     outputs, labels = res
-    loss = nn.CrossEntropyLoss()(
-        torch.from_numpy(outputs).to("cuda:0"),
-        torch.from_numpy(labels).long().to("cuda:0"))
+    print(outputs)
+    print(outputs.size)
+    print(labels)
+    print(labels.size)
+    delta = 1e-7 # マイナス無限大を発生させないように微小な値を追加する
+    if outputs.ndim == 1:
+        labels = labels.reshape(1, labels.size)
+        outputs = outputs.reshape(1, outputs.size)
+    batch_size = outputs.shape[0]
+    loss = -np.sum(np.log(y[np.arrange(batch_size), labels] + delta) / batch_size)
+    #loss = nn.CrossEntropyLoss()(
+    #    torch.from_numpy(outputs).to("cuda:0"),
+    #    torch.from_numpy(labels).long().to("cuda:0"))
     return {"loss": loss}
 
 for fold in range(0, config.n_folds):
