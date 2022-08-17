@@ -88,7 +88,7 @@ if not os.path.exists(MODEL_PATH):
 
 config = SimpleNamespace()
 
-config.seed = 123
+config.seed = 12345
 config.model_name = 'microsoft/deberta-v3-large'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
@@ -204,19 +204,89 @@ def short_essay_text(x):
 def count_total_len(x):
     return len(tokenizer(x.short_discourse_text).input_ids + tokenizer(x.short_essay_text).input_ids)
 
+## Domain Search
+re_3986_enhanced = re.compile(r"""
+        # Parse and capture RFC-3986 Generic URI components.
+        ^                                    # anchor to beginning of string
+        (?:  (?P<scheme>    [^:/?#\s]+):// )?  # capture optional scheme
+        (?:(?P<authority>  [^/?#\s]*)  )?  # capture optional authority
+             (?P<path>        [^?#\s]*)      # capture required path
+        (?:\?(?P<query>        [^#\s]*)  )?  # capture optional query
+        (?:\#(?P<fragment>      [^\s]*)  )?  # capture optional fragment
+        $                                    # anchor to end of string
+        """, re.MULTILINE | re.VERBOSE)
+
+re_domain =  re.compile(r"""
+        # Pick out top two levels of DNS domain from authority.
+        (?P<domain>[^.]+\.[A-Za-z]{2,6})  # $domain: top two domain levels.
+        (?::[0-9]*)?                      # Optional port number.
+        $                                 # Anchor to end of string.
+        """, 
+        re.MULTILINE | re.VERBOSE)
+
+def domain_search(text):
+    try:
+        return re_domain.search(re_3986_enhanced.match(text).group('authority')).group('domain')
+    except:
+        return 'url'
+
+## Load helper helper))
+def load_helper_file(filename):
+    with open(HELPER_PATH+filename+'.pickle', 'rb') as f:
+        temp_obj = pickle.load(f)
+    return temp_obj
+        
+## Preprocess helpers
+def place_hold(w):
+    return WPLACEHOLDER + '['+re.sub(' ', '___', w)+']'
+
+def check_replace(w):
+    return not bool(re.search(WPLACEHOLDER, w))
+
+def make_cleaning(s, c_dict):
+    if check_replace(s):
+        s = s.translate(c_dict)
+    return s
+  
+def make_dict_cleaning(s, w_dict):
+    if check_replace(s):
+        s = w_dict.get(s, s)
+    return s
+
+def export_dict(temp_dict, serial_num):
+    pd.DataFrame.from_dict(temp_dict, orient='index').to_csv('dict_'+str(serial_num)+'.csv')
+
+def print_dict(temp_dict, n_items=10):
+    run = 0
+    for k,v in temp_dict.items():
+        print(k,'---',v)
+        run +=1
+        if run==n_items:
+            break    
+
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 print("=== get essay ===")
 df['essay_text'] = df['essay_id'].progress_apply(get_essay)
+
 print("=== add_special_tokens ===")
 df['discourse_type_category'] = df.progress_apply(add_special_tokens, axis=1)
+
+print("=== Lowering everything ===")
+df['discourse_text'] = df['discourse_text'].progress_apply(lambda x: x.lower())
+df['essay_text'] = df['essay_text'].progress_apply(lambda x: x.lower())
+
 print("=== resolve_encodings_and_normalize(discourse_text) ===")
 df['discourse_text'] = df['discourse_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
+
 print("=== resolve_encodings_and_normalize(essay_text) ===")
 df['essay_text'] = df['essay_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
+
 print("=== short_discourse_text ===")
 df['short_discourse_text'] = df.progress_apply(short_discourse_text, axis=1)
+
 print("=== count_short_discourse_text_len ===")
 df['short_discourse_text_len'] = df.progress_apply(count_short_discourse_text_len, axis=1)
+
 print("=== short_essay_text ===")
 df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
 #print("=== count_total_len ===")
