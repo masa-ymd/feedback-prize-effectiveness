@@ -353,6 +353,51 @@ class MeanPooling(nn.Module):
         mean_embeddings = sum_embeddings / sum_mask
         return mean_embeddings
 
+class MeanMaxPooling(nn.Module):
+    def __init__(self):
+        super(MeanMaxPooling, self).__init__()
+        
+    def forward(self, last_hidden_state, attention_mask):
+        mean_pooling_embeddings = torch.mean(last_hidden_state, 1)
+        _, max_pooling_embeddings = torch.max(last_hidden_state, 1)
+        mean_max_embeddings = torch.cat((mean_pooling_embeddings, max_pooling_embeddings), 1)
+        return mean_max_embeddings
+
+    
+class LSTMPooling(nn.Module):
+    def __init__(self, num_layers, hidden_size, hiddendim_lstm):
+        super(LSTMPooling, self).__init__()
+        self.num_hidden_layers = num_layers
+        self.hidden_size = hidden_size
+        self.hiddendim_lstm = hiddendim_lstm
+        self.lstm = nn.LSTM(self.hidden_size, self.hiddendim_lstm, batch_first=True)
+        self.dropout = nn.Dropout(0.1)
+    
+    def forward(self, all_hidden_states):
+        ## forward
+        hidden_states = torch.stack([all_hidden_states[layer_i][:, 0].squeeze()
+                                     for layer_i in range(1, self.num_hidden_layers+1)], dim=-1)
+        hidden_states = hidden_states.view(-1, self.num_hidden_layers, self.hidden_size)
+        out, _ = self.lstm(hidden_states, None)
+        out = self.dropout(out[:, -1, :])
+        return out
+    
+class WeightedLayerPooling(nn.Module):
+    def __init__(self, num_hidden_layers, layer_start: int = 4, layer_weights = None):
+        super(WeightedLayerPooling, self).__init__()
+        self.layer_start = layer_start
+        self.num_hidden_layers = num_hidden_layers
+        self.layer_weights = layer_weights if layer_weights is not None \
+            else nn.Parameter(
+                torch.tensor([1] * (num_hidden_layers+1 - layer_start), dtype=torch.float)
+            )
+
+    def forward(self, all_hidden_states):
+        all_layer_embedding = all_hidden_states[self.layer_start:, :, :, :]
+        weight_factor = self.layer_weights.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).expand(all_layer_embedding.size())
+        weighted_average = (weight_factor*all_layer_embedding).sum(dim=0) / self.layer_weights.sum()
+        return weighted_average
+
 class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
