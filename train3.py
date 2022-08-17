@@ -204,65 +204,6 @@ def short_essay_text(x):
 def count_total_len(x):
     return len(tokenizer(x.short_discourse_text).input_ids + tokenizer(x.short_essay_text).input_ids)
 
-## Domain Search
-re_3986_enhanced = re.compile(r"""
-        # Parse and capture RFC-3986 Generic URI components.
-        ^                                    # anchor to beginning of string
-        (?:  (?P<scheme>    [^:/?#\s]+):// )?  # capture optional scheme
-        (?:(?P<authority>  [^/?#\s]*)  )?  # capture optional authority
-             (?P<path>        [^?#\s]*)      # capture required path
-        (?:\?(?P<query>        [^#\s]*)  )?  # capture optional query
-        (?:\#(?P<fragment>      [^\s]*)  )?  # capture optional fragment
-        $                                    # anchor to end of string
-        """, re.MULTILINE | re.VERBOSE)
-
-re_domain =  re.compile(r"""
-        # Pick out top two levels of DNS domain from authority.
-        (?P<domain>[^.]+\.[A-Za-z]{2,6})  # $domain: top two domain levels.
-        (?::[0-9]*)?                      # Optional port number.
-        $                                 # Anchor to end of string.
-        """, 
-        re.MULTILINE | re.VERBOSE)
-
-def domain_search(text):
-    try:
-        return re_domain.search(re_3986_enhanced.match(text).group('authority')).group('domain')
-    except:
-        return 'url'
-
-## Load helper helper))
-def load_helper_file(filename):
-    with open(HELPER_PATH+filename+'.pickle', 'rb') as f:
-        temp_obj = pickle.load(f)
-    return temp_obj
-        
-## Preprocess helpers
-def place_hold(w):
-    return WPLACEHOLDER + '['+re.sub(' ', '___', w)+']'
-
-def check_replace(w):
-    return not bool(re.search(WPLACEHOLDER, w))
-
-def make_cleaning(s, c_dict):
-    if check_replace(s):
-        s = s.translate(c_dict)
-    return s
-  
-def make_dict_cleaning(s, w_dict):
-    if check_replace(s):
-        s = w_dict.get(s, s)
-    return s
-
-def export_dict(temp_dict, serial_num):
-    pd.DataFrame.from_dict(temp_dict, orient='index').to_csv('dict_'+str(serial_num)+'.csv')
-
-def print_dict(temp_dict, n_items=10):
-    run = 0
-    for k,v in temp_dict.items():
-        print(k,'---',v)
-        run +=1
-        if run==n_items:
-            break    
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 print("=== get essay ===")
