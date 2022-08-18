@@ -183,16 +183,19 @@ def add_special_tokens(x):
     else:
         return '[UNK]'
 
+"""
 def short_discourse_text(x):
     t = tokenizer(x.discourse_text).input_ids
     if len(t) > 400:
         return tokenizer.decode(t[:200] + t[-200:], skip_special_tokens=True)
     else:
         return x.discourse_text
+"""
 
 def count_short_discourse_text_len(x):
     return len(tokenizer(x.short_discourse_text).input_ids)
 
+"""
 def short_essay_text(x):
     max_len = (508 - x.short_discourse_text_len) // 2
     t = tokenizer(x.essay_text).input_ids
@@ -203,7 +206,7 @@ def short_essay_text(x):
 
 def count_total_len(x):
     return len(tokenizer(x.short_discourse_text).input_ids + tokenizer(x.short_essay_text).input_ids)
-
+"""
 
 df = pd.read_csv(f"{BASE_PATH}/train.csv")
 print("=== get essay ===")
@@ -222,14 +225,14 @@ df['discourse_text'] = df['discourse_text'].progress_apply(lambda x : resolve_en
 print("=== resolve_encodings_and_normalize(essay_text) ===")
 df['essay_text'] = df['essay_text'].progress_apply(lambda x : resolve_encodings_and_normalize(x))
 
-print("=== short_discourse_text ===")
-df['short_discourse_text'] = df.progress_apply(short_discourse_text, axis=1)
+#print("=== short_discourse_text ===")
+#df['short_discourse_text'] = df.progress_apply(short_discourse_text, axis=1)
 
 print("=== count_short_discourse_text_len ===")
 df['short_discourse_text_len'] = df.progress_apply(count_short_discourse_text_len, axis=1)
 
-print("=== short_essay_text ===")
-df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
+#print("=== short_essay_text ===")
+#df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
 #print("=== count_total_len ===")
 #df['total_len'] = df.progress_apply(count_total_len, axis=1)
 print(df.head())
@@ -270,6 +273,40 @@ class FeedBackDataset(Dataset):
         discourse = self.discourse[index]
         essay = self.essay[index]
         discourse_type_category = self.discourse_type_category[index]
+
+        # 1 + 1 + 400 + 1 + 109 + 1
+
+        # まずは限界を設定せずにトークナイズする
+        input_ids_discourse = self.tokenizer.encode(discourse)
+        n_token_discourse = len(input_ids_discourse)
+        #self.tokenizer.sep_token_id
+        #self.tokenizer.cls_token_id
+        #self.tokenizer.encode(discourse_type_category)
+        if n_token_discourse > 400:
+            _input_ids_discourse = input_ids_discourse[1:-1]
+            input_ids_discourse = _input_ids_discourse[:200] + _input_ids_discourse[-200:]
+
+        input_ids_essay = self.tokenizer.encode(essay)
+        n_token_essay = len(input_ids_essay)
+        if n_token_essay > 109:
+            _input_ids_essay = input_ids_essay[1:-1]
+            input_ids_essay = _input_ids_essay[:55] + _input_ids_essay[-54:]
+
+        input_ids_all = self.tokenizer.cls_token_id + self.tokenizer.encode(discourse_type_category) + input_ids_discourse + self.tokenizer.sep_token_id + input_ids_essay + self.tokenizer.sep_token_id
+        n_token_all = leninput_ids_all
+
+        # トークン数が最大数と同じ場合
+        if n_token_all >= self.max_len:
+            attention_mask = [1 for _ in range(self.max_len)]
+            token_type_ids = [1 for _ in range(self.max_len)]
+        # トークン数が最大数より少ない場合
+        elif n_token_all < self.max_len:
+            pad = [1 for _ in range(self.max_len-n_token_all)]
+            attention_mask = [1 if n_token_all > i else 0 for i in range(self.max_len)]
+            token_type_ids = [1 if n_token_all > i else 0 for i in range(self.max_len)]
+
+
+        """
         text = discourse_type_category + discourse + '[SEP]' + essay
         inputs = self.tokenizer.encode_plus(
                         text,
@@ -278,10 +315,12 @@ class FeedBackDataset(Dataset):
                         padding='max_length',
                         add_special_tokens=True
                     )
+        """
         
         return {
-            'input_ids': inputs['input_ids'],
-            'attention_mask': inputs['attention_mask'],
+            'input_ids': input_ids_all,
+            'attention_mask': attention_mask,
+            'token_type_ids': token_type_ids,
             'labels': self.targets[index]
         }
 
@@ -320,6 +359,114 @@ class Collate:
 
 collate_fn = DataCollatorWithPadding(tokenizer=tokenizer)
 #collate_fn = Collate(CONFIG['tokenizer'])
+
+import math
+from torch.autograd.function import InplaceFunction
+from torch.nn import Parameter
+import torch.nn.init as init
+
+class Mixout(InplaceFunction):
+    @staticmethod
+    def _make_noise(input):
+        return input.new().resize_as_(input)
+
+    @classmethod
+    def forward(cls, ctx, input, target=None, p=0.0, training=False, inplace=False):
+        if p < 0 or p > 1:
+            raise ValueError("A mix probability of mixout has to be between 0 and 1," " but got {}".format(p))
+        if target is not None and input.size() != target.size():
+            raise ValueError(
+                "A target tensor size must match with a input tensor size {},"
+                " but got {}".format(input.size(), target.size())
+            )
+        ctx.p = p
+        ctx.training = training
+
+        if ctx.p == 0 or not ctx.training:
+            return input
+
+        if target is None:
+            target = cls._make_noise(input)
+            target.fill_(0)
+        target = target.to(input.device)
+
+        if inplace:
+            ctx.mark_dirty(input)
+            output = input
+        else:
+            output = input.clone()
+
+        ctx.noise = cls._make_noise(input)
+        if len(ctx.noise.size()) == 1:
+            ctx.noise.bernoulli_(1 - ctx.p)
+        else:
+            ctx.noise[0].bernoulli_(1 - ctx.p)
+            ctx.noise = ctx.noise[0].repeat(input.size()[0], 1)
+        ctx.noise.expand_as(input)
+
+        if ctx.p == 1:
+            output = target
+        else:
+            output = ((1 - ctx.noise) * target + ctx.noise * output - ctx.p * target) / (1 - ctx.p)
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        if ctx.p > 0 and ctx.training:
+            return grad_output * ctx.noise, None, None, None, None
+        else:
+            return grad_output, None, None, None, None
+
+
+def mixout(input, target=None, p=0.0, training=False, inplace=False):
+    return Mixout.apply(input, target, p, training, inplace)
+
+
+class MixLinear(torch.nn.Module):
+    __constants__ = ["bias", "in_features", "out_features"]
+    def __init__(self, in_features, out_features, bias=True, target=None, p=0.0):
+        super(MixLinear, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.weight = Parameter(torch.Tensor(out_features, in_features))
+        if bias:
+            self.bias = Parameter(torch.Tensor(out_features))
+        else:
+            self.register_parameter("bias", None)
+        self.reset_parameters()
+        self.target = target
+        self.p = p
+
+    def reset_parameters(self):
+        init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / math.sqrt(fan_in)
+            init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input):
+        return F.linear(input, mixout(self.weight, self.target, self.p, self.training), self.bias)
+
+    def extra_repr(self):
+        type = "drop" if self.target is None else "mix"
+        return "{}={}, in_features={}, out_features={}, bias={}".format(
+            type + "out", self.p, self.in_features, self.out_features, self.bias is not None
+        )
+
+def replace_mixout(model):
+    for sup_module in model.modules():
+        for name, module in sup_module.named_children():
+            if isinstance(module, nn.Dropout):
+                module.p = 0.0
+            if isinstance(module, nn.Linear):
+                target_state_dict = module.state_dict()
+                bias = True if module.bias is not None else False
+                new_module = MixLinear(
+                    module.in_features, module.out_features, bias, target_state_dict["weight"], MIXOUT
+                )
+                new_module.load_state_dict(target_state_dict)
+                setattr(sup_module, name, new_module)
+    return model
 
 def freeze(module):
     """
@@ -412,6 +559,7 @@ class FeedBackModel(nn.Module):
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.pooler = MeanPooling()
+        #self.pooler = WeightedLayerPooling(self.config.hidden_size)
         #self.cnn1 = nn.Conv1d(self.config.hidden_size, 256, kernel_size=2, padding=1)
         #self.cnn2 = nn.Conv1d(256, 3, kernel_size=2, padding=1)
         #self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
@@ -440,6 +588,7 @@ class FeedBackModel(nn.Module):
         #print(f"size {sequence_out.size()}")
         #cat_out = torch.cat([out["hidden_states"][-1*i][:,0] for i in range(1, 4+1)], dim=1)  # concatenate
         pool_out = self.pooler(out.last_hidden_state, attention_mask)
+        #pool_out = self.pooler(out)
         #logits = sum([self.fc(dropout(sequence_out)) for dropout in self.dropouts]) / config.num_msd
         #print(f"cnn_out2: {self.cnn2(cnn_out).size()}")
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
