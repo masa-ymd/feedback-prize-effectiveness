@@ -228,8 +228,8 @@ df['essay_text'] = df['essay_text'].progress_apply(lambda x : resolve_encodings_
 #print("=== short_discourse_text ===")
 #df['short_discourse_text'] = df.progress_apply(short_discourse_text, axis=1)
 
-print("=== count_short_discourse_text_len ===")
-df['short_discourse_text_len'] = df.progress_apply(count_short_discourse_text_len, axis=1)
+#print("=== count_short_discourse_text_len ===")
+#df['short_discourse_text_len'] = df.progress_apply(count_short_discourse_text_len, axis=1)
 
 #print("=== short_essay_text ===")
 #df['short_essay_text'] = df.progress_apply(short_essay_text, axis=1)
@@ -262,8 +262,8 @@ class FeedBackDataset(Dataset):
         self.max_len = max_length
         self.tokenizer = tokenizer
         self.discourse_type_category = df['discourse_type_category'].values
-        self.discourse = df['short_discourse_text'].values
-        self.essay = df['short_essay_text'].values
+        self.discourse = df['discourse_text'].values
+        self.essay = df['essay_text'].values
         self.targets = df['discourse_effectiveness'].values
         
     def __len__(self):
