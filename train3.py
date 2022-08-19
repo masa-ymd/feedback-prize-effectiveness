@@ -555,12 +555,12 @@ class FeedBackModel(nn.Module):
         freezed_parameters = get_freezed_parameters(self.model)
         print(f"Freezed parameters: {freezed_parameters}")
         self.model.resize_token_embeddings(len(tokenizer))
-        (self.model).gradient_checkpointing_enable()
+        self.model.gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         #self.pooler = MeanPooling()
         layer_start = 9
-        print(f"num_hidden_layers: {config.num_hidden_layers}")
+        print(f"num_hidden_layers: {config}")
         pooler = WeightedLayerPooling(
             config.num_hidden_layers, 
             layer_start=layer_start,
