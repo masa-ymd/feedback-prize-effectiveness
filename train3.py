@@ -294,7 +294,6 @@ class FeedBackDataset(Dataset):
 
         input_ids_all = [self.tokenizer.cls_token_id] + self.tokenizer.encode(discourse_type_category) + input_ids_discourse + [self.tokenizer.sep_token_id] + input_ids_essay + [self.tokenizer.sep_token_id]
         n_token_all = len(input_ids_all)
-        print(f"num :{n_token_all}")
 
         # トークン数が最大数と同じ場合
         if n_token_all >= self.max_len:
@@ -306,6 +305,8 @@ class FeedBackDataset(Dataset):
             input_ids_all + pad
             attention_mask = [1 if n_token_all > i else 0 for i in range(self.max_len)]
             token_type_ids = [0 if n_token_all > i else 1 for i in range(self.max_len)]
+
+            print(f"{len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
 
 
         """
