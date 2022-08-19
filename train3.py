@@ -302,7 +302,7 @@ class FeedBackDataset(Dataset):
         # トークン数が最大数より少ない場合
         elif n_token_all < self.max_len:
             pad = [1 for _ in range(self.max_len-n_token_all)]
-            input_ids_all + pad
+            input_ids_all = input_ids_all + pad
             attention_mask = [1 if n_token_all > i else 0 for i in range(self.max_len)]
             token_type_ids = [0 if n_token_all > i else 1 for i in range(self.max_len)]
 
