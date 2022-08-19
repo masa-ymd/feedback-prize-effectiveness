@@ -599,9 +599,9 @@ class FeedBackModel(nn.Module):
         #cat_out = torch.cat([out["hidden_states"][-1*i][:,0] for i in range(1, 4+1)], dim=1)  # concatenate
         #pool_out = self.pooler(out.last_hidden_state, attention_mask)
         #pool_out = self.pooler(out)
-        print(f"size: {out.hidden_states.size}")
+        print(f"size: {out.hidden_states.size()}")
         all_hidden_states = torch.stack(out.hidden_states)
-        print(f"size2: {all_hidden_states.size}")
+        print(f"size2: {all_hidden_states.size()}")
         pool_out = self.pooler(all_hidden_states)
         #logits = sum([self.fc(dropout(sequence_out)) for dropout in self.dropouts]) / config.num_msd
         #print(f"cnn_out2: {self.cnn2(cnn_out).size()}")
