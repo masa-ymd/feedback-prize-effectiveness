@@ -294,6 +294,7 @@ class FeedBackDataset(Dataset):
 
         input_ids_all = [self.tokenizer.cls_token_id] + self.tokenizer.encode(discourse_type_category) + input_ids_discourse + [self.tokenizer.sep_token_id] + input_ids_essay + [self.tokenizer.sep_token_id]
         n_token_all = len(input_ids_all)
+        print(f"num :{n_token_all}")
 
         # トークン数が最大数と同じ場合
         if n_token_all >= self.max_len:
