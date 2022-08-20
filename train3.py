@@ -561,6 +561,7 @@ class FeedBackModel(nn.Module):
         self.model.gradient_checkpointing_enable()
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
+        self.layer_norm = nn.LayerNorm(self.config.hidden_size)
         self.pooler2 = MeanPooling()
         layer_start = 9
         print(f"num_hidden_layers: {self.config}")
@@ -574,7 +575,6 @@ class FeedBackModel(nn.Module):
         #self.cnn2 = nn.Conv1d(256, 3, kernel_size=2, padding=1)
         #self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(self.config.hidden_size, 3)
-        self.fc2 = nn.Linear((self.config.num_hidden_layers+1, self.config.hidden_size), 3)
         #self.fc = nn.Linear(514, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
@@ -605,14 +605,14 @@ class FeedBackModel(nn.Module):
         print(f"size: {len(out.hidden_states)}")
         all_hidden_states = torch.stack(out.hidden_states)
         print(f"size2: {all_hidden_states.size()}")
-        pool_out = self.pooler(all_hidden_states)
+        pool_out = self.layer_norm(self.pooler(all_hidden_states))
         print(f"size3: {pool_out.size()}")
         print(f"size3_2: {pool_out2.size()}")
         #logits = sum([self.fc(dropout(sequence_out)) for dropout in self.dropouts]) / config.num_msd
         #print(f"cnn_out2: {self.cnn2(cnn_out).size()}")
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
         # MIXOUT!
-        logits = sum([self.fc2(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
+        logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         logits2 = sum([self.fc(dropout(pool_out2)) for dropout in self.dropouts]) / config.num_msd
         print(f"label {labels.size()}")
         print(f"logits {logits.size()}")
