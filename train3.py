@@ -543,13 +543,13 @@ class WeightedLayerPooling(nn.Module):
             )
 
     def forward(self, all_hidden_states):
-        print(f"all_hidden_states {all_hidden_states}")
+        print(f"all_hidden_states {all_hidden_states.size()}")
         all_layer_embedding = all_hidden_states[self.layer_start:, :, :, :]
-        print(f"all_layer_embedding {all_layer_embedding}")
+        print(f"all_layer_embedding {all_layer_embedding.size()}")
         weight_factor = self.layer_weights.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).expand(all_layer_embedding.size())
-        print(f"weight_factor {weight_factor}")
+        print(f"weight_factor {weight_factor.size()}")
         weighted_average = (weight_factor*all_layer_embedding).sum(dim=0) / self.layer_weights.sum()
-        print(f"weighted_average {weighted_average}")
+        print(f"weighted_average {weighted_average.size()}")
         return weighted_average
 
 class FeedBackModel(nn.Module):
