@@ -566,10 +566,10 @@ class FeedBackModel(nn.Module):
         print(f"Gradient Checkpointing: {(self.model).is_gradient_checkpointing}")
         self.config = AutoConfig.from_pretrained(model_name)
         self.layer_norm = nn.LayerNorm(self.config.hidden_size)
-        self.pooler2 = MeanPooling()
+        self.pooler = MeanPooling()
         layer_start = 9
         print(f"num_hidden_layers: {self.config}")
-        self.pooler = pooler = WeightedLayerPooling(
+        self.wlpooler = pooler = WeightedLayerPooling(
             self.config.num_hidden_layers, 
             layer_start=layer_start,
             layer_weights=None
@@ -602,25 +602,26 @@ class FeedBackModel(nn.Module):
         #sequence_out = lstm_out[:, -1, :]
         #print(f"size {sequence_out.size()}")
         #cat_out = torch.cat([out["hidden_states"][-1*i][:,0] for i in range(1, 4+1)], dim=1)  # concatenate
-        pool_out2 = self.pooler2(out.last_hidden_state, attention_mask)
+        
         #pool_out = self.pooler(out)
         print(f"{type(out)}, {type(out.hidden_states)}")
         #print(f"{out.hidden_states}")
         print(f"size: {len(out.hidden_states)}")
         all_hidden_states = torch.stack(out.hidden_states)
         print(f"size2: {all_hidden_states.size()}")
-        pool_out = self.layer_norm(self.pooler(all_hidden_states))
+        pool_out = self.pooler(self.pooler(all_hidden_states), attention_mask)
+        #pool_out = self.layer_norm(self.pooler(all_hidden_states))
         print(f"size3: {pool_out.size()}")
-        print(f"size3_2: {pool_out2.size()}")
+        #print(f"size3_2: {pool_out2.size()}")
         #logits = sum([self.fc(dropout(sequence_out)) for dropout in self.dropouts]) / config.num_msd
         #print(f"cnn_out2: {self.cnn2(cnn_out).size()}")
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
         # MIXOUT!
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        logits2 = sum([self.fc(dropout(pool_out2)) for dropout in self.dropouts]) / config.num_msd
+        #logits2 = sum([self.fc(dropout(pool_out2)) for dropout in self.dropouts]) / config.num_msd
         print(f"label {labels.size()}")
         print(f"logits {logits.size()}")
-        print(f"logits2 {logits2.size()}")
+        #print(f"logits2 {logits2.size()}")
         
         loss = None
         if labels is not None:
