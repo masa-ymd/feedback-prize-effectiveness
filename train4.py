@@ -247,7 +247,7 @@ class FeedBackDataset(Dataset):
 
         input_ids_essay = self.tokenizer.encode(essay)
         n_token_essay = len(input_ids_essay)
-        if n_token_essay > 109:
+        if n_token_essay > 509 - n_token_discourse:
             _input_ids_essay = input_ids_essay[1:-1]
             input_ids_essay = _input_ids_essay[:55] + _input_ids_essay[-54:]
 
