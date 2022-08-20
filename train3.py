@@ -585,7 +585,7 @@ class FeedBackModel(nn.Module):
         inputs_embeds=None,
         labels=None,
         output_attentions=None,
-        output_hidden_states=None,
+        output_hidden_states=True,
         return_dict=None
     ):        
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
