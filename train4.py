@@ -260,8 +260,10 @@ class FeedBackDataset(Dataset):
             attention_mask = [1 for _ in range(self.max_len)]
             token_type_ids = [0 for _ in range(self.max_len)]
             print(f"{len([self.tokenizer.cls_token_id])}, {len(cat)}, {len(input_ids_discourse)}, {len(input_ids_essay)},, {len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
-            if len(input_ids_essay) > 500:
+            if len(input_ids_essay) > 1000:
                 print(essay)
+                print(n_token_essay)
+                print(leftsize)
         elif n_token_all < self.max_len:
             pad = [1 for _ in range(self.max_len-n_token_all)]
             input_ids_all = input_ids_all + pad
