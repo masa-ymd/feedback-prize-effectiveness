@@ -600,8 +600,8 @@ class FeedBackModel(nn.Module):
         #pool_out = self.pooler(out.last_hidden_state, attention_mask)
         #pool_out = self.pooler(out)
         print(f"{type(out)}, {type(out.hidden_states)}")
-        print(f"{out.hidden_states}")
-        #print(f"size: {len(out.hidden_states)}")
+        #print(f"{out.hidden_states}")
+        print(f"size: {len(out.hidden_states)}")
         all_hidden_states = torch.stack(out.hidden_states)
         print(f"size2: {all_hidden_states.size()}")
         pool_out = self.pooler(all_hidden_states)
@@ -611,7 +611,8 @@ class FeedBackModel(nn.Module):
         #print(f"{[self.cnn2(dropout(cnn_out)).size() for dropout in self.dropouts]}")
         # MIXOUT!
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        #print(labels.size())
+        print(f"label {labels.size()}")
+        print(f"logits {logits.size()}")
         
         loss = None
         if labels is not None:
