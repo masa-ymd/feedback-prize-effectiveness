@@ -609,7 +609,7 @@ class FeedBackModel(nn.Module):
         print(f"size: {len(out.hidden_states)}")
         all_hidden_states = torch.stack(out.hidden_states)
         print(f"size2: {all_hidden_states.size()}")
-        pool_out = self.pooler(self.pooler(all_hidden_states), attention_mask)
+        pool_out = self.pooler(self.wlpooler(all_hidden_states), attention_mask)
         #pool_out = self.layer_norm(self.pooler(all_hidden_states))
         print(f"size3: {pool_out.size()}")
         #print(f"size3_2: {pool_out2.size()}")
