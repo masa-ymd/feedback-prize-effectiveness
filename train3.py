@@ -564,7 +564,7 @@ class FeedBackModel(nn.Module):
         #self.pooler = MeanPooling()
         layer_start = 9
         print(f"num_hidden_layers: {self.config}")
-        pooler = WeightedLayerPooling(
+        self.pooler = pooler = WeightedLayerPooling(
             self.config.num_hidden_layers, 
             layer_start=layer_start,
             layer_weights=None
