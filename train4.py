@@ -235,23 +235,21 @@ class FeedBackDataset(Dataset):
         essay = self.essay[index]
         discourse_type_category = self.discourse_type_category[index]
 
-        # 1 + 1 + 400 + 1 + 109 + 1
-
         # まずは限界を設定せずにトークナイズする
-        input_ids_discourse = self.tokenizer.encode(discourse)
+        input_ids_discourse = self.tokenizer.encode(discourse)[1:-1]
         n_token_discourse = len(input_ids_discourse)
 
         if n_token_discourse > 400:
-            _input_ids_discourse = input_ids_discourse[1:-1]
-            input_ids_discourse = _input_ids_discourse[:200] + _input_ids_discourse[-200:]
+            #_input_ids_discourse = input_ids_discourse[1:-1]
+            input_ids_discourse = input_ids_discourse[:200] + input_ids_discourse[-200:]
 
-        input_ids_essay = self.tokenizer.encode(essay)
+        input_ids_essay = self.tokenizer.encode(essay)[1:-1]
         n_token_essay = len(input_ids_essay)
         leftsize = 508 - n_token_discourse
         if n_token_essay > leftsize:
             half = leftsize // 2
-            _input_ids_essay = input_ids_essay[1:-1]
-            input_ids_essay = _input_ids_essay[:half] + _input_ids_essay[-half:]
+            #_input_ids_essay = input_ids_essay[1:-1]
+            input_ids_essay = input_ids_essay[:half] + input_ids_essay[-half:]
 
         cat = self.tokenizer.encode(discourse_type_category)[1:-1]
 
@@ -262,6 +260,8 @@ class FeedBackDataset(Dataset):
             attention_mask = [1 for _ in range(self.max_len)]
             token_type_ids = [0 for _ in range(self.max_len)]
             print(f"{len([self.tokenizer.cls_token_id])}, {len(cat)}, {len(input_ids_discourse)}, {len(input_ids_essay)},, {len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
+            if len(input_ids_essay) > 500:
+                print(essay)
         elif n_token_all < self.max_len:
             pad = [1 for _ in range(self.max_len-n_token_all)]
             input_ids_all = input_ids_all + pad
