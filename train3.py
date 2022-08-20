@@ -574,7 +574,7 @@ class FeedBackModel(nn.Module):
         #self.cnn2 = nn.Conv1d(256, 3, kernel_size=2, padding=1)
         #self.lstm = nn.LSTM(self.config.hidden_size, self.config.hidden_size, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(self.config.hidden_size, 3)
-        self.fc2 = nn.Linear([25, self.config.hidden_size], 3)
+        self.fc2 = nn.Linear((self.config.num_hidden_layers+1, self.config.hidden_size), 3)
         #self.fc = nn.Linear(514, 3)
         self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
         
