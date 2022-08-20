@@ -240,15 +240,13 @@ class FeedBackDataset(Dataset):
         n_token_discourse = len(input_ids_discourse)
 
         if n_token_discourse > 400:
-            #_input_ids_discourse = input_ids_discourse[1:-1]
             input_ids_discourse = input_ids_discourse[:200] + input_ids_discourse[-200:]
 
         input_ids_essay = self.tokenizer.encode(essay)[1:-1]
         n_token_essay = len(input_ids_essay)
-        leftsize = 508 - n_token_discourse
+        leftsize = 508 - len(input_ids_discourse)
         if n_token_essay > leftsize:
             half = leftsize // 2
-            #_input_ids_essay = input_ids_essay[1:-1]
             input_ids_essay = input_ids_essay[:half] + input_ids_essay[-half:]
 
         cat = self.tokenizer.encode(discourse_type_category)[1:-1]
