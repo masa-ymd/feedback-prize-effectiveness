@@ -699,6 +699,7 @@ for fold in range(0, config.n_folds):
     )
     
     model = FeedBackModel(config.model_name, tokenizer)
+    model = replace_mixout(model)
     
     trainer = Trainer(
         model,
