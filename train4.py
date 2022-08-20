@@ -89,8 +89,8 @@ if not os.path.exists(MODEL_PATH):
 config = SimpleNamespace()
 
 config.seed = 12345
-#config.model_name = 'microsoft/deberta-v3-large'
-config.model_name = '/root/kaggle/feedback-prize-effectiveness/pretrainmodels'
+config.model_name = 'microsoft/deberta-v3-large'
+#config.model_name = '/root/kaggle/feedback-prize-effectiveness/pretrainmodels'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
@@ -105,7 +105,7 @@ config.max_len = 512
 config.hidden_dropout_prob = 0.1
 config.label_smoothing_factor = 0.
 config.eval_per_epoch = 610 #3
-config.group = f'{tstr}-exp'
+config.group = f'{tstr}-final'
 config.num_msd = 6
 config.mixout = 0.3
 
@@ -258,11 +258,6 @@ class FeedBackDataset(Dataset):
         if n_token_all >= self.max_len:
             attention_mask = [1 for _ in range(self.max_len)]
             token_type_ids = [0 for _ in range(self.max_len)]
-            print(f"{len([self.tokenizer.cls_token_id])}, {len(cat)}, {len(input_ids_discourse)}, {len(input_ids_essay)},, {len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
-            if len(input_ids_essay) > 1000:
-                print(essay)
-                print(n_token_essay)
-                print(leftsize)
         elif n_token_all < self.max_len:
             pad = [1 for _ in range(self.max_len-n_token_all)]
             input_ids_all = input_ids_all + pad
