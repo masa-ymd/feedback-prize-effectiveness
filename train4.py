@@ -247,12 +247,12 @@ class FeedBackDataset(Dataset):
 
         input_ids_essay = self.tokenizer.encode(essay)
         n_token_essay = len(input_ids_essay)
-        if n_token_essay > 509 - n_token_discourse:
+        if n_token_essay > 508 - n_token_discourse:
             _input_ids_essay = input_ids_essay[1:-1]
             input_ids_essay = _input_ids_essay[:55] + _input_ids_essay[-54:]
 
         cat = self.tokenizer.encode(discourse_type_category)[1:-1]
-        print(f"{discourse_type_category}, {self.tokenizer.encode(discourse_type_category)} {cat}")
+        #print(f"{discourse_type_category}, {self.tokenizer.encode(discourse_type_category)} {cat}")
 
         input_ids_all = [self.tokenizer.cls_token_id] + cat + input_ids_discourse + [self.tokenizer.sep_token_id] + input_ids_essay + [self.tokenizer.sep_token_id]
         n_token_all = len(input_ids_all)
@@ -266,7 +266,7 @@ class FeedBackDataset(Dataset):
             attention_mask = [1 if n_token_all > i else 0 for i in range(self.max_len)]
             token_type_ids = [0 if n_token_all > i else 1 for i in range(self.max_len)]
 
-        print(f"{len(input_ids_discourse)}, {len(input_ids_essay)}, {len(self.tokenizer.encode(discourse_type_category))}, {len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
+        print(f"{len([self.tokenizer.cls_token_id])}, {len(cat))}, {len(input_ids_discourse)}, {len(input_ids_essay)},, {len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
                 
         return {
             'input_ids': input_ids_all,
