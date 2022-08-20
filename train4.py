@@ -89,7 +89,8 @@ if not os.path.exists(MODEL_PATH):
 config = SimpleNamespace()
 
 config.seed = 12345
-config.model_name = 'microsoft/deberta-v3-large'
+#config.model_name = 'microsoft/deberta-v3-large'
+config.model_name = '/root/kaggle/feedback-prize-effectiveness/pretrainmodels'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
