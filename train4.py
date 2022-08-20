@@ -263,7 +263,7 @@ class FeedBackDataset(Dataset):
             attention_mask = [1 if n_token_all > i else 0 for i in range(self.max_len)]
             token_type_ids = [0 if n_token_all > i else 1 for i in range(self.max_len)]
 
-        print(f"{len(input_ids_discourse), len(input_ids_essay), len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
+        print(f"{len(input_ids_discourse)}, {len(input_ids_essay)}, {len(self.tokenizer.encode(discourse_type_category))}, {len(input_ids_all)}, {len(attention_mask)}, {len(token_type_ids)}")
                 
         return {
             'input_ids': input_ids_all,
