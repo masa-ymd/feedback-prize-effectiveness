@@ -251,9 +251,10 @@ class FeedBackDataset(Dataset):
             _input_ids_essay = input_ids_essay[1:-1]
             input_ids_essay = _input_ids_essay[:55] + _input_ids_essay[-54:]
 
-        print(f"{discourse_type_category}, {self.tokenizer.encode(discourse_type_category)}")
+        cat = self.tokenizer.encode(discourse_type_category)[1:-1]
+        print(f"{discourse_type_category}, {self.tokenizer.encode(discourse_type_category)} {cat}")
 
-        input_ids_all = [self.tokenizer.cls_token_id] + self.tokenizer.encode(discourse_type_category) + input_ids_discourse + [self.tokenizer.sep_token_id] + input_ids_essay + [self.tokenizer.sep_token_id]
+        input_ids_all = [self.tokenizer.cls_token_id] + cat + input_ids_discourse + [self.tokenizer.sep_token_id] + input_ids_essay + [self.tokenizer.sep_token_id]
         n_token_all = len(input_ids_all)
 
         if n_token_all >= self.max_len:
