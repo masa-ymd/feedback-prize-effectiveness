@@ -465,7 +465,7 @@ def replace_mixout(model):
                 target_state_dict = module.state_dict()
                 bias = True if module.bias is not None else False
                 new_module = MixLinear(
-                    module.in_features, module.out_features, bias, target_state_dict["weight"], MIXOUT
+                    module.in_features, module.out_features, bias, target_state_dict["weight"], 0.3
                 )
                 new_module.load_state_dict(target_state_dict)
                 setattr(sup_module, name, new_module)
