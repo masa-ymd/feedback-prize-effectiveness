@@ -90,7 +90,7 @@ config = SimpleNamespace()
 
 config.seed = 12345
 config.model_name = 'microsoft/deberta-v3-large'
-#config.model_name = '/root/kaggle/feedback-prize-effectiveness/pretrainmodels'
+config.pretrained_model_name = '/root/kaggle/feedback-prize-effectiveness/pretrainmodels'
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
@@ -98,8 +98,8 @@ config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
-config.batch_size = 12
-config.gradient_accumulation_steps = 2
+config.batch_size = 24
+config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
 config.max_len = 512
 config.hidden_dropout_prob = 0.1
@@ -442,7 +442,8 @@ class WeightedLayerPooling(nn.Module):
 class FeedBackModel(nn.Module):
     def __init__(self, model_name, tokenizer):
         super(FeedBackModel, self).__init__()
-        self.model = AutoModel.from_pretrained(model_name)
+        #self.model = AutoModel.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(config.pretrained_model_name)
         # freezing embeddings and first 6 layers of encoder
         freeze(self.model.embeddings)
         freeze(self.model.encoder.layer[:6])
@@ -453,7 +454,7 @@ class FeedBackModel(nn.Module):
         self.config = AutoConfig.from_pretrained(model_name)
         self.layer_norm = nn.LayerNorm(self.config.hidden_size)
         self.pooler = MeanPooling()
-        layer_start = 9
+        layer_start = self.config.num_hidden_layers - (4-1)
         self.wlpooler = pooler = WeightedLayerPooling(
             self.config.num_hidden_layers, 
             layer_start=layer_start,
