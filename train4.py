@@ -505,7 +505,7 @@ def criterion(res):
 for fold in range(0, config.n_folds):
     
     if cmdargs.f is not None:
-        if fold < 2:
+        if fold < cmdargs.f:
             print(f"{y_}====== skip fold {fold} ======{sr_}")
             continue
 
