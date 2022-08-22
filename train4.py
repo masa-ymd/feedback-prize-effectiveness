@@ -94,7 +94,7 @@ config.pretrained_model_name = '/root/kaggle/feedback-prize-effectiveness/pretra
 config.output_path = Path(MODEL_PATH)
 config.input_path = Path('../input/feedback-prize-effectiveness')
 
-config.n_folds = 5
+config.n_folds = 4
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
@@ -455,15 +455,15 @@ class FeedBackModel(nn.Module):
         self.config = AutoConfig.from_pretrained(model_name)
         self.layer_norm = nn.LayerNorm(self.config.hidden_size)
         self.pooler = MeanPooling()
-        layer_start = self.config.num_hidden_layers - 4 + 1
-        self.wlpooler = pooler = WeightedLayerPooling(
-            self.config.num_hidden_layers, 
-            layer_start=layer_start,
-            layer_weights=None
-        )
+        #layer_start = self.config.num_hidden_layers - 4 + 1
+        #self.wlpooler = pooler = WeightedLayerPooling(
+        #    self.config.num_hidden_layers, 
+        #    layer_start=layer_start,
+        #    layer_weights=None
+        #)
         self.fc = nn.Linear(self.config.hidden_size, 3)
-        #self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
-        self.drop = nn.Dropout(p=0.2) 
+        self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
+        #self.drop = nn.Dropout(p=0.2) 
         
     def forward(self,
         input_ids=None,
@@ -478,10 +478,10 @@ class FeedBackModel(nn.Module):
     ):        
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
-        all_hidden_states = torch.stack(out.hidden_states)
-        pool_out = self.pooler(self.wlpooler(all_hidden_states), attention_mask)
-        #logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        logits = self.drop(pool_out)
+        #all_hidden_states = torch.stack(out.hidden_states)
+        pool_out = self.pooler(out, attention_mask)
+        logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
+        #logits = self.drop(pool_out)
         
         loss = None
         if labels is not None:
