@@ -454,7 +454,7 @@ class FeedBackModel(nn.Module):
         self.config = AutoConfig.from_pretrained(model_name)
         self.layer_norm = nn.LayerNorm(self.config.hidden_size)
         self.pooler = MeanPooling()
-        layer_start = self.config.num_hidden_layers - (4-1)
+        layer_start = self.config.num_hidden_layers - 4 + 1
         self.wlpooler = pooler = WeightedLayerPooling(
             self.config.num_hidden_layers, 
             layer_start=layer_start,
