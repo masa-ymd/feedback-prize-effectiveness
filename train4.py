@@ -480,7 +480,7 @@ class FeedBackModel(nn.Module):
         all_hidden_states = torch.stack(out.hidden_states)
         pool_out = self.pooler(self.wlpooler(all_hidden_states), attention_mask)
         #logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
-        logist = self.drop(pool_out)
+        logits = self.drop(pool_out)
         
         loss = None
         if labels is not None:
