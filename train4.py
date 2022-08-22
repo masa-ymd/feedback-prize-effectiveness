@@ -461,7 +461,8 @@ class FeedBackModel(nn.Module):
             layer_weights=None
         )
         self.fc = nn.Linear(self.config.hidden_size, 3)
-        self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
+        #self.dropouts = nn.ModuleList([nn.Dropout(0.2) for _ in range(config.num_msd)])
+        self.drop = nn.Dropout(p=0.2) 
         
     def forward(self,
         input_ids=None,
@@ -478,7 +479,8 @@ class FeedBackModel(nn.Module):
                          output_hidden_states=output_hidden_states)
         all_hidden_states = torch.stack(out.hidden_states)
         pool_out = self.pooler(self.wlpooler(all_hidden_states), attention_mask)
-        logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
+        #logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
+        logist = self.drop(pool_out)
         
         loss = None
         if labels is not None:
