@@ -479,7 +479,7 @@ class FeedBackModel(nn.Module):
         out = self.model(input_ids=input_ids,attention_mask=attention_mask,
                          output_hidden_states=output_hidden_states)
         #all_hidden_states = torch.stack(out.hidden_states)
-        pool_out = self.pooler(out, attention_mask)
+        pool_out = self.pooler(out.last_hidden_state, attention_mask)
         logits = sum([self.fc(dropout(pool_out)) for dropout in self.dropouts]) / config.num_msd
         #logits = self.drop(pool_out)
         
