@@ -98,7 +98,8 @@ config.n_folds = 5
 config.lr = 1e-5
 config.weight_decay = 0.01
 config.epochs = 4
-config.batch_size = 36
+config.per_device_train_batch_size = 32
+config.per_device_eval_batch_size = 64
 config.gradient_accumulation_steps = 1
 config.warm_up_ratio = 0.1
 config.max_len = 512
@@ -524,7 +525,7 @@ for fold in range(0, config.n_folds):
     train_dataset = FeedBackDataset(df_train, tokenizer=tokenizer, max_length=config.max_len)
     valid_dataset = FeedBackDataset(df_valid, tokenizer=tokenizer, max_length=config.max_len)
 
-    num_steps = len(train_dataset) / config.batch_size / config.gradient_accumulation_steps
+    num_steps = len(train_dataset) / config.per_device_train_batch_size / config.gradient_accumulation_steps
     eval_steps = num_steps // config.eval_per_epoch
     print(f'Num steps: {num_steps}, eval steps: {eval_steps}')
 
@@ -534,8 +535,8 @@ for fold in range(0, config.n_folds):
         warmup_ratio=config.warm_up_ratio,
         lr_scheduler_type='cosine',
         fp16=True,
-        per_device_train_batch_size=config.batch_size,
-        per_device_eval_batch_size=config.batch_size * 2,
+        per_device_train_batch_size=config.per_device_train_batch_size,
+        per_device_eval_batch_size=config.per_device_eval_batch_size,
         num_train_epochs=config.epochs,
         weight_decay=config.weight_decay,
         report_to="wandb",
